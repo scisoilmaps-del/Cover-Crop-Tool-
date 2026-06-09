@@ -121,9 +121,13 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
 @media(max-width:760px){ .farm-info-grid { grid-template-columns:1fr 1fr; } }
 @media(max-width:480px){ .farm-info-grid { grid-template-columns:1fr; } }
 .farm-field label { display:block; font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--sci-mid); margin-bottom:.35rem; }
-.farm-field input { width:100%; padding:11px 12px; border:1.5px solid var(--sci-border); border-radius:3px; font-family:'Inter',sans-serif; font-size:.9rem; color:var(--sci-black); background:#fff; }
-.farm-field input:focus { outline:none; border-color:var(--sci-leaf); box-shadow:0 0 0 3px rgba(61,107,58,.12); }
+.farm-field input, .farm-field select { width:100%; padding:11px 12px; border:1.5px solid var(--sci-border); border-radius:3px; font-family:'Inter',sans-serif; font-size:.9rem; color:var(--sci-black); background:#fff; }
+.farm-field input:focus, .farm-field select:focus { outline:none; border-color:var(--sci-leaf); box-shadow:0 0 0 3px rgba(61,107,58,.12); }
 .farm-info-note { margin-top:.75rem; font-size:.76rem; color:var(--sci-mid); line-height:1.5; }
+.farm-field select { padding:11px 12px; border:1.5px solid var(--sci-border); border-radius:3px; font-family:'Inter',sans-serif; font-size:.9rem; color:var(--sci-black); background:#fff; }
+.auto-climate-note { margin-top:.55rem; font-size:.76rem; color:var(--sci-mid); line-height:1.45; background:var(--sci-offwhite); border:1px solid var(--sci-border); border-radius:3px; padding:.65rem .75rem; }
+.auto-climate-note strong { color:var(--sci-leaf); }
+
 .farm-summary { display:flex; flex-wrap:wrap; align-items:center; gap:.6rem .9rem; padding:.9rem 1rem; margin-bottom:1rem; background:var(--sci-amber-bg); border:1px solid var(--sci-border); border-left:3px solid var(--sci-amber); border-radius:0 4px 4px 0; }
 .farm-summary-label { font-size:.68rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--sci-amber); }
 .farm-summary-value { font-size:.86rem; font-weight:700; color:var(--sci-black); }
@@ -363,6 +367,62 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
         <input id="farm-name" type="text" placeholder="Example: Smith Family Farm" autocomplete="organization">
       </div>
       <div class="farm-field">
+        <label for="farm-state">State</label>
+        <select id="farm-state" aria-label="Farm state">
+          <option value="">Select state</option>
+          <option value="Alabama">Alabama</option>
+          <option value="Alaska">Alaska</option>
+          <option value="Arizona">Arizona</option>
+          <option value="Arkansas">Arkansas</option>
+          <option value="California">California</option>
+          <option value="Colorado">Colorado</option>
+          <option value="Connecticut">Connecticut</option>
+          <option value="Delaware">Delaware</option>
+          <option value="Florida">Florida</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Hawaii">Hawaii</option>
+          <option value="Idaho">Idaho</option>
+          <option value="Illinois">Illinois</option>
+          <option value="Indiana">Indiana</option>
+          <option value="Iowa">Iowa</option>
+          <option value="Kansas">Kansas</option>
+          <option value="Kentucky">Kentucky</option>
+          <option value="Louisiana">Louisiana</option>
+          <option value="Maine">Maine</option>
+          <option value="Maryland">Maryland</option>
+          <option value="Massachusetts">Massachusetts</option>
+          <option value="Michigan">Michigan</option>
+          <option value="Minnesota">Minnesota</option>
+          <option value="Mississippi">Mississippi</option>
+          <option value="Missouri">Missouri</option>
+          <option value="Montana">Montana</option>
+          <option value="Nebraska">Nebraska</option>
+          <option value="Nevada">Nevada</option>
+          <option value="New Hampshire">New Hampshire</option>
+          <option value="New Jersey">New Jersey</option>
+          <option value="New Mexico">New Mexico</option>
+          <option value="New York">New York</option>
+          <option value="North Carolina">North Carolina</option>
+          <option value="North Dakota">North Dakota</option>
+          <option value="Ohio">Ohio</option>
+          <option value="Oklahoma">Oklahoma</option>
+          <option value="Oregon">Oregon</option>
+          <option value="Pennsylvania">Pennsylvania</option>
+          <option value="Rhode Island">Rhode Island</option>
+          <option value="South Carolina">South Carolina</option>
+          <option value="South Dakota">South Dakota</option>
+          <option value="Tennessee">Tennessee</option>
+          <option value="Texas">Texas</option>
+          <option value="Utah">Utah</option>
+          <option value="Vermont">Vermont</option>
+          <option value="Virginia">Virginia</option>
+          <option value="Washington">Washington</option>
+          <option value="West Virginia">West Virginia</option>
+          <option value="Wisconsin">Wisconsin</option>
+          <option value="Wyoming">Wyoming</option>
+        </select>
+      </div>
+      <div class="farm-field">
         <label for="total-fields">Total fields</label>
         <input id="total-fields" type="number" min="0" step="1" inputmode="numeric" placeholder="Example: 8">
       </div>
@@ -371,7 +431,7 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
         <input id="total-acres" type="number" min="0" step="0.1" inputmode="decimal" placeholder="Example: 640">
       </div>
     </div>
-    <p class="farm-info-note">Farm info is for logging only. It does not change the average directional percentage estimates.</p>
+    <p class="farm-info-note">Farm info is for logging; the State field auto-selects climate type for Step 1 and does not otherwise change the average directional percentage estimates.</p>
   </div>
 
   <div class="step-grid">
@@ -384,7 +444,8 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
         <label class="chip active" data-group="climate" data-val="C"><span class="dot"></span>Temperate (C)</label>
         <label class="chip" data-group="climate" data-val="D"><span class="dot"></span>Continental (D)</label>
       </div>
-      <p class="soil-note">Not sure? <a href="https://www.britannica.com/science/Koppen-climate-classification" target="_blank">Look up your Köppen climate →</a></p>
+      <p class="soil-note">Climate type auto-selects when a state is selected above. You can still manually override it for local conditions. <a href="https://www.britannica.com/science/Koppen-climate-classification" target="_blank">Look up your Köppen climate →</a></p>
+      <div class="auto-climate-note" id="auto-climate-note"><strong>Auto climate:</strong> Select a state in Farm info to set this step automatically.</div>
     </div>
     <div class="card">
       <div class="card-label">Step 2</div>
@@ -764,6 +825,77 @@ function blendMods(speciesIds) {
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 const state = { climate:'C', texture:'medium', crop:'corn', cropOther:'', cc:'grass', species:[], blendCount:2 };
+const STATE_CLIMATE = {
+  "Alabama": "C",
+  "Alaska": "D",
+  "Arizona": "B",
+  "Arkansas": "C",
+  "California": "C",
+  "Colorado": "B",
+  "Connecticut": "D",
+  "Delaware": "C",
+  "Florida": "C",
+  "Georgia": "C",
+  "Hawaii": "A",
+  "Idaho": "B",
+  "Illinois": "D",
+  "Indiana": "D",
+  "Iowa": "D",
+  "Kansas": "D",
+  "Kentucky": "C",
+  "Louisiana": "C",
+  "Maine": "D",
+  "Maryland": "C",
+  "Massachusetts": "D",
+  "Michigan": "D",
+  "Minnesota": "D",
+  "Mississippi": "C",
+  "Missouri": "C",
+  "Montana": "D",
+  "Nebraska": "D",
+  "Nevada": "B",
+  "New Hampshire": "D",
+  "New Jersey": "C",
+  "New Mexico": "B",
+  "New York": "D",
+  "North Carolina": "C",
+  "North Dakota": "D",
+  "Ohio": "D",
+  "Oklahoma": "C",
+  "Oregon": "C",
+  "Pennsylvania": "D",
+  "Rhode Island": "D",
+  "South Carolina": "C",
+  "South Dakota": "D",
+  "Tennessee": "C",
+  "Texas": "C",
+  "Utah": "B",
+  "Vermont": "D",
+  "Virginia": "C",
+  "Washington": "C",
+  "West Virginia": "C",
+  "Wisconsin": "D",
+  "Wyoming": "B"
+};
+const STATE_CLIMATE_NAMES = {A:'Tropical (A)', B:'Arid (B)', C:'Temperate (C)', D:'Continental (D)'};
+function setClimateFromState(selectedState) {
+  const climate = STATE_CLIMATE[selectedState];
+  const note = document.getElementById('auto-climate-note');
+  if (!climate) {
+    if (note) note.innerHTML = '<strong>Auto climate:</strong> Select a state in Farm info to set this step automatically.';
+    return;
+  }
+  state.climate = climate;
+  document.querySelectorAll('.chip[data-group="climate"]').forEach(c => {
+    c.classList.toggle('active', c.dataset.val === climate);
+  });
+  if (note) note.innerHTML = `<strong>Auto climate:</strong> ${selectedState} set to ${STATE_CLIMATE_NAMES[climate]} based on state-level Köppen screening.`;
+}
+const farmStateSelect = document.getElementById('farm-state');
+if (farmStateSelect) {
+  farmStateSelect.addEventListener('change', () => setClimateFromState(farmStateSelect.value));
+}
+
 const selectedParams = new Set(PARAMS.map(p=>p.id));
 
 // ─── BUILD PARAM GRID ─────────────────────────────────────────────────────────
@@ -794,7 +926,7 @@ document.querySelectorAll('.chip').forEach(chip => {
     const group = chip.dataset.group;
     document.querySelectorAll(`.chip[data-group="${group}"]`).forEach(c=>c.classList.remove('active'));
     chip.classList.add('active');
-    if (group==='climate') state.climate = chip.dataset.val;
+    if (group==='climate') { state.climate = chip.dataset.val; const note=document.getElementById('auto-climate-note'); if(note) note.innerHTML = `<strong>Manual climate:</strong> ${STATE_CLIMATE_NAMES[state.climate]} selected. State auto-select can be reapplied by changing the Farm info state.`; }
     else if (group==='texture') state.texture = chip.dataset.val;
     else if (group==='crop') { state.crop = chip.dataset.val; updateOtherCropField(); }
     else if (group==='cc') { state.cc = chip.dataset.val; renderSpeciesPanel(); }
@@ -1022,12 +1154,14 @@ function formatAcres(acres) {
 // ─── FARM INFO / LOGGING ─────────────────────────────────────────────────────
 function getFarmInfo() {
   const name = document.getElementById('farm-name')?.value.trim() || '';
+  const farmState = document.getElementById('farm-state')?.value || '';
   const totalFieldsRaw = document.getElementById('total-fields')?.value || '';
   const totalAcresRaw = document.getElementById('total-acres')?.value || '';
   const totalFields = totalFieldsRaw === '' ? null : parseInt(totalFieldsRaw, 10);
   const totalAcres = totalAcresRaw === '' ? null : parseFloat(totalAcresRaw);
   return {
     farmName: name,
+    farmState,
     totalFields: Number.isFinite(totalFields) && totalFields >= 0 ? totalFields : null,
     totalAcres: Number.isFinite(totalAcres) && totalAcres >= 0 ? totalAcres : null
   };
@@ -1035,6 +1169,7 @@ function getFarmInfo() {
 function formatFarmInfo(info, html=false) {
   const parts = [];
   if (info?.farmName) parts.push(html ? `Farm: ${escapeHtml(info.farmName)}` : `Farm: ${info.farmName}`);
+  if (info?.farmState) parts.push(html ? `State: ${escapeHtml(info.farmState)}` : `State: ${info.farmState}`);
   if (info?.totalFields !== null && info?.totalFields !== undefined) parts.push(`${info.totalFields.toLocaleString()} fields`);
   if (info?.totalAcres !== null && info?.totalAcres !== undefined) parts.push(`${info.totalAcres.toLocaleString(undefined, {maximumFractionDigits:1})} total acres`);
   return parts.length ? parts.join(' · ') : 'Farm info not entered';
@@ -1181,6 +1316,7 @@ document.getElementById('btn-csv').addEventListener('click', () => {
   lines.push('');
   lines.push('Farm Info');
   lines.push(`Farm Name,${csvSafe(r.farmInfo?.farmName || '')}`);
+  lines.push(`State,${csvSafe(r.farmInfo?.farmState || '')}`);
   lines.push(`Total Fields,${r.farmInfo?.totalFields ?? ''}`);
   lines.push(`Total Acres,${r.farmInfo?.totalAcres ?? ''}`);
   lines.push('');
