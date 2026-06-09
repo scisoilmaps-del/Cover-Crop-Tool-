@@ -96,6 +96,9 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
 .param-text { flex:1; }
 .param-name { font-size:.8rem; font-weight:500; color:var(--sci-black); }
 .param-hint { font-size:.72rem; color:var(--sci-mid); line-height:1.4; margin-top:2px; }
+.direction-note { margin:.65rem 0 .9rem; padding:.75rem .9rem; background:var(--sci-blue-bg); border-left:3px solid var(--sci-blue); border-radius:0 4px 4px 0; font-size:.78rem; color:var(--sci-blue); line-height:1.55; }
+.direction-note strong { color:#123A62; }
+.result-value-label { font-size:.64rem; color:var(--sci-mid); text-transform:uppercase; letter-spacing:.08em; font-weight:600; }
 
 /* CALC BUTTON */
 .calc-row { margin-top:1.25rem; display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
@@ -229,6 +232,56 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
 .sci-footer-links { display:flex; gap:1.5rem; flex-wrap:wrap; }
 .sci-footer-links a { font-size:.72rem; color:rgba(255,255,255,.28); text-decoration:none; transition:color .15s; }
 .sci-footer-links a:hover { color:rgba(255,255,255,.65); }
+
+/* ── Soil texture calculator (Step 2 optional widget) ── */
+.texture-calc-toggle {
+  display:inline-flex; align-items:center; gap:.45rem;
+  margin-top:.8rem; font-size:.76rem; font-weight:600;
+  letter-spacing:.06em; color:var(--sci-leaf);
+  cursor:pointer; background:none; border:none; padding:0;
+  text-transform:uppercase;
+}
+.texture-calc-toggle svg { width:14px; height:14px; fill:none;
+  stroke:var(--sci-leaf); stroke-width:2.2; transition:transform .25s; }
+.texture-calc-toggle.open svg { transform:rotate(180deg); }
+
+.texture-calc-panel {
+  display:none; margin-top:.9rem;
+  background:var(--sci-bg); border:1px solid var(--sci-rule);
+  border-radius:3px; padding:1rem 1.1rem;
+}
+.texture-calc-panel.open { display:block; }
+
+.tc-row { display:flex; align-items:center; gap:.7rem; margin-bottom:.6rem; }
+.tc-label { font-size:.72rem; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--sci-ink); width:38px; flex-shrink:0; }
+.tc-slider { flex:1; -webkit-appearance:none; appearance:none;
+  height:4px; border-radius:2px; outline:none;
+  background:linear-gradient(to right, var(--sci-leaf) var(--pct,40%), #D8D3C8 var(--pct,40%)); }
+.tc-slider::-webkit-slider-thumb {
+  -webkit-appearance:none; width:18px; height:18px; border-radius:50%;
+  background:var(--sci-ink); border:2.5px solid #fff;
+  box-shadow:0 1px 6px rgba(0,0,0,.22); cursor:pointer; }
+.tc-slider::-moz-range-thumb {
+  width:18px; height:18px; border-radius:50%;
+  background:var(--sci-ink); border:2.5px solid #fff; cursor:pointer; }
+.tc-val { font-size:.82rem; font-weight:600; color:var(--sci-ink);
+  width:36px; text-align:right; flex-shrink:0; }
+
+.tc-silt-row { display:flex; align-items:center; justify-content:space-between;
+  padding:.45rem .6rem; background:#fff; border:1px solid var(--sci-rule);
+  border-radius:3px; margin-bottom:.75rem; font-size:.78rem; }
+.tc-silt-row span:first-child { color:var(--sci-mid); text-transform:uppercase;
+  letter-spacing:.1em; font-weight:700; font-size:.7rem; }
+.tc-silt-val { font-weight:700; color:var(--sci-ink); }
+.tc-silt-val.error { color:#b84040; }
+
+.tc-result { font-size:.78rem; color:var(--sci-mid); line-height:1.5; }
+.tc-result strong { color:var(--sci-ink); }
+.tc-result .tc-class { font-size:.88rem; font-weight:700; color:var(--sci-leaf); }
+.tc-error-msg { font-size:.76rem; color:#b84040; margin-top:.3rem; display:none; }
+.tc-error-msg.show { display:block; }
+
 </style>
 </head>
 <body>
@@ -260,7 +313,7 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
         <div class="hd-label">countries of field data</div>
       </div>
     </div>
-    <p class="header-sub">Results are directional averages — pair with local soil tests and extension guidance for farm-specific decisions. <span style="opacity:.5;">Scroll down for sources.</span></p>
+    <p class="header-sub">Results are average change percentages for directional planning — pair with local soil tests and extension guidance for farm-specific decisions. <span style="opacity:.5;">Scroll down for sources.</span></p>
   </div>
 </header>
 
@@ -288,6 +341,38 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
       </div>
       <p class="soil-note">Coarse = sand/loamy sand/sandy loam · Medium = loam/silt loam · Fine = clay loam/silty clay<br>
       <a href="http://websoilsurvey.sc.egov.usda.gov/App/HomePage.htm" target="_blank">Find your soil type →</a></p>
+
+      <!-- Optional sand/silt/clay calculator -->
+      <button class="texture-calc-toggle" id="tcToggle" type="button" aria-expanded="false">
+        <svg viewBox="0 0 16 16"><polyline points="3 6 8 11 13 6"/></svg>
+        Calculate from sand / silt / clay %
+      </button>
+      <div class="texture-calc-panel" id="tcPanel" role="region">
+
+        <!-- Sand slider -->
+        <div class="tc-row">
+          <span class="tc-label">Sand</span>
+          <input type="range" class="tc-slider" id="tcSandSlider" min="0" max="100" step="1" value="40" aria-label="Sand %">
+          <span class="tc-val" id="tcSandVal">40%</span>
+        </div>
+        <!-- Clay slider -->
+        <div class="tc-row">
+          <span class="tc-label">Clay</span>
+          <input type="range" class="tc-slider" id="tcClaySlider" min="0" max="100" step="1" value="20" aria-label="Clay %">
+          <span class="tc-val" id="tcClayVal">20%</span>
+        </div>
+        <!-- Silt calculated -->
+        <div class="tc-silt-row">
+          <span>Silt (calculated)</span>
+          <span class="tc-silt-val" id="tcSiltVal">40%</span>
+        </div>
+        <div class="tc-error-msg" id="tcError">Sand + Clay cannot exceed 100%. Please adjust one of the values.</div>
+
+        <div class="tc-result" id="tcResult">
+          USDA texture class: <span class="tc-class" id="tcClass">Loam</span><br>
+          <span id="tcMapMsg">→ Mapped to <strong>Medium</strong> texture group — chip updated above.</span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -331,7 +416,8 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
 
   <div class="card card-full" style="margin-bottom:1rem;">
     <div class="card-label">Step 5</div>
-    <h3>Select parameters to estimate</h3>
+    <h3>Select average change percentage parameters to estimate</h3>
+    <div class="direction-note"><strong>How to read these estimates:</strong> each selected output is an <strong>average change percentage</strong> from the study dataset. The numbers are <strong>directional guidance</strong> — they indicate likely increase/decrease and relative strength, not a field-specific quantitative prediction, guarantee, or measured soil test result.</div>
     <div class="param-actions">
       <button class="link-btn" id="select-all">Select all</button>
       <button class="link-btn" id="select-none">Clear all</button>
@@ -344,7 +430,7 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
       <svg viewBox="0 0 16 16"><polyline points="2,8 6,12 14,4"/></svg>
       Calculate results
     </button>
-    <span class="calc-hint">Results represent averages across 500+ peer-reviewed studies.</span>
+    <span class="calc-hint">Results show average change percentages from published field studies; use them as directional planning guidance.</span>
   </div>
 
   <div id="results">
@@ -354,8 +440,9 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
     </div>
     <div id="result-cards-wrap" style="display:none;">
       <div class="results-header">
-        <h2>Estimated changes</h2>
+        <h2>Average change percentages</h2>
         <span class="results-tag" id="results-tag"></span>
+        <div class="direction-note" style="flex-basis:100%;margin:.1rem 0 0;"><strong>Directional, not quantitative:</strong> values are modeled average percentage changes for comparison and planning. They should not be read as exact tons, pounds, ppm, bushels, or field-level measurements.</div>
         <div class="export-btns">
           <button class="btn-export" id="btn-csv" title="Download CSV">
             <svg viewBox="0 0 16 16"><path d="M3 2h7l3 3v9H3V2z"/><path d="M10 2v3h3"/><path d="M5 9h6M5 11.5h4"/></svg>
@@ -394,7 +481,7 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
         <div class="source-body">
           <div class="source-title">Statistical model &amp; soil health estimates</div>
           <div class="source-cite">Jian, Lester, Du, Reiter &amp; Stewart (2020) · <em>Soil &amp; Tillage Research</em> 199, 104575 · Virginia Tech SPES</div>
-          <p class="source-desc">The percentage change estimates for all 13 soil health and productivity parameters come from this peer-reviewed meta-analysis. The authors compiled paired treatment/control data from <strong>269–281 published field studies</strong> across 38+ countries, then used one-sample t-tests and unbalanced analysis of variation (UANOVA) to identify which factors — climate type, soil texture, cover crop category, and cash crop type — most strongly determine how much each indicator responds. Those four factors became the structure of this calculator's five-step inputs. The companion dataset paper (<em>Data in Brief</em> 29, 105376) is fully open-access and includes the R code and raw data at <a href="https://github.com/jinshijian/SoilHealthCalculator" target="_blank">github.com/jinshijian/SoilHealthCalculator</a>. The original web tool was hosted by Virginia Tech's School of Plant and Environmental Sciences at soilhealth.spes.vt.edu.</p>
+          <p class="source-desc">The average percentage change estimates for all 13 soil health and productivity parameters come from this peer-reviewed meta-analysis. The authors compiled paired treatment/control data from <strong>269–281 published field studies</strong> across 38+ countries, then used one-sample t-tests and unbalanced analysis of variation (UANOVA) to identify which factors — climate type, soil texture, cover crop category, and cash crop type — most strongly determine how much each indicator responds. Those four factors became the structure of this calculator's five-step inputs. The companion dataset paper (<em>Data in Brief</em> 29, 105376) is fully open-access and includes the R code and raw data at <a href="https://github.com/jinshijian/SoilHealthCalculator" target="_blank">github.com/jinshijian/SoilHealthCalculator</a>. The original web tool was hosted by Virginia Tech's School of Plant and Environmental Sciences at soilhealth.spes.vt.edu.</p>
           <div class="source-stats">
             <div class="sstat"><span class="sstat-n">269–281</span><span class="sstat-l">field studies</span></div>
             <div class="sstat"><span class="sstat-n">38+</span><span class="sstat-l">countries</span></div>
@@ -435,7 +522,7 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
     </div>
 
     <div class="sources-footer-note">
-      <strong>On accuracy:</strong> The statistical estimates represent ensemble averages across diverse geographies, management systems, and years of cover crop adoption. They should be read as directional guidance — the sign and rough magnitude of change a farmer might expect — not as field-specific predictions. Local soil test data, extension advice, and on-farm observation remain essential complements to any modelled estimate. Soil texture groupings follow the Cornell Comprehensive Assessment of Soil Health (CASH) framework. Climate classification follows Köppen-Geiger (Kottek et al., 2006). Soil type lookup: <a href="https://websoilsurvey.sc.egov.usda.gov/App/HomePage.htm" target="_blank">USDA Web Soil Survey</a>.
+      <strong>On accuracy:</strong> The statistical estimates represent average change percentages across diverse geographies, management systems, and years of cover crop adoption. They should be read as directional guidance — the sign and rough magnitude of change a farmer might expect — not as field-specific quantitative predictions, guarantees, or measured soil test results. Local soil test data, extension advice, and on-farm observation remain essential complements to any modelled estimate. Soil texture groupings follow the Cornell Comprehensive Assessment of Soil Health (CASH) framework. Climate classification follows Köppen-Geiger (Kottek et al., 2006). Soil type lookup: <a href="https://websoilsurvey.sc.egov.usda.gov/App/HomePage.htm" target="_blank">USDA Web Soil Survey</a>.
     </div>
 
   </div>
@@ -887,7 +974,7 @@ document.getElementById('calc-btn').addEventListener('click', () => {
           <div class="scale-labels"><span>Worst</span><span>Neutral</span><span>Best</span></div>
         </div>
       </div>
-      <div class="result-right"><div class="result-value ${valClass}">${sign}${val}%</div></div>
+      <div class="result-right"><div class="result-value ${valClass}">${sign}${val}%</div><div class="result-value-label">avg change</div></div>
     `;
     list.appendChild(card);
   });
@@ -963,7 +1050,7 @@ document.getElementById('btn-csv').addEventListener('click', () => {
     lines.push('');
   }
 
-  lines.push('Parameter,Change (%),Direction,Beneficial Direction,Assessment');
+  lines.push('Parameter,Average Change (%),Direction,Beneficial Direction,Assessment');
 
   r.params.forEach(p => {
     const val = r.adjVals[p.id];
@@ -977,9 +1064,9 @@ document.getElementById('btn-csv').addEventListener('click', () => {
   });
 
   lines.push('');
-  lines.push('"Note: Estimates are averages from 500+ published field studies (Jian et al. 2020 Soil & Tillage Research 199:104575)."');
+  lines.push('"Note: Values are average change percentages from published field studies (Jian et al. 2020 Soil & Tillage Research 199:104575)."');
   lines.push('"Species data: NRCS Cover Crop Chart V4.0 (2023). Management guidance: SARE Managing Cover Crops Profitably 3rd Ed."');
-  lines.push('"Actual results vary by local conditions. Not a substitute for local soil testing and extension advice."');
+  lines.push('"Directional guidance only: outputs show likely increase/decrease and relative strength, not field-specific quantitative predictions or measured results. Actual outcomes vary by local conditions. Not a substitute for local soil testing and extension advice."');
 
   const csv = lines.join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -1093,14 +1180,14 @@ document.getElementById('btn-pdf').addEventListener('click', () => {
   <table>
     <thead><tr style="background:#111110;">
       <th style="padding:10px 12px;text-align:left;font-size:8.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#fff;width:70%;">Parameter</th>
-      <th style="padding:10px 12px;text-align:right;font-size:8.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#fff;width:30%;">Estimated Change</th>
+      <th style="padding:10px 12px;text-align:right;font-size:8.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#fff;width:30%;">Avg. Change %</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table>
 
   <!-- FOOTER NOTE -->
   <div style="margin-top:1.5rem;padding:.75rem 1rem;background:#F5F3EE;border-left:3px solid #8C6022;font-size:8pt;color:#6B6860;line-height:1.6;">
-    <strong style="color:#4A3010;">Note:</strong> Estimates are ensemble averages from 269–281 published field studies (Jian et al., 2020, <em>Soil &amp; Tillage Research</em> 199:104575). Species data from NRCS Cover Crop Chart V4.0 (USDA-ARS, 2023). Management guidance from SARE <em>Managing Cover Crops Profitably</em>, 3rd Ed. Results are directional guidance — actual field outcomes vary by local soil conditions, management history, and years since adoption. Not a substitute for local soil testing and professional extension advice.
+    <strong style="color:#4A3010;">Note:</strong> Estimates are ensemble averages from 269–281 published field studies (Jian et al., 2020, <em>Soil &amp; Tillage Research</em> 199:104575). Species data from NRCS Cover Crop Chart V4.0 (USDA-ARS, 2023). Management guidance from SARE <em>Managing Cover Crops Profitably</em>, 3rd Ed. Values are average change percentages and should be read as directional guidance only — likely increase/decrease and relative strength, not field-specific quantitative predictions or measured results. Actual field outcomes vary by local soil conditions, management history, and years since adoption. Not a substitute for local soil testing and professional extension advice.
   </div>
 
   <div style="margin-top:1rem;text-align:center;font-size:7.5pt;color:#aaa;">
@@ -1114,6 +1201,119 @@ document.getElementById('btn-pdf').addEventListener('click', () => {
   win.document.close();
   win.onload = () => { win.focus(); win.print(); };
 });
+
+/* ══════════════════════════════════════════════════════════════════
+   STEP 2 – optional soil texture calculator
+   ══════════════════════════════════════════════════════════════════ */
+(function() {
+  /* USDA texture classification (same logic as soil-texture-calculator-V2) */
+  function classifySoil(sand, silt, clay) {
+    if (sand >= 85 && (silt + 1.5*clay) < 15)                                      return 'Sand';
+    if (sand >= 70 && sand < 91 && (silt + 1.5*clay) >= 15 && (silt + 2*clay) < 30) return 'Loamy Sand';
+    if ((clay >= 7 && clay < 20 && sand > 52 && (silt + 2*clay) >= 30) ||
+        (clay < 7  && silt < 50 && sand >= 43))                                     return 'Sandy Loam';
+    if (clay >= 7 && clay < 27 && silt >= 28 && silt < 50 && sand <= 52)            return 'Loam';
+    if ((silt >= 50 && clay >= 12 && clay < 27) ||
+        (silt >= 50 && silt < 80 && clay < 12))                                     return 'Silt Loam';
+    if (silt >= 80 && clay < 12)                                                     return 'Silt';
+    if (clay >= 20 && clay < 35 && silt < 28 && sand > 45)                          return 'Sandy Clay Loam';
+    if (clay >= 27 && clay < 40 && sand > 20 && sand <= 45)                         return 'Clay Loam';
+    if (clay >= 27 && clay < 40 && sand <= 20)                                      return 'Silty Clay Loam';
+    if (clay >= 35 && sand > 45)                                                     return 'Sandy Clay';
+    if (clay >= 40 && silt >= 40)                                                    return 'Silty Clay';
+    if (clay >= 40 && sand <= 45 && silt < 40)                                      return 'Clay';
+    if (clay >= 40)  return 'Clay';
+    if (silt >= 50)  return 'Silt Loam';
+    return 'Loam';
+  }
+
+  /* Map USDA class → Coarse / Medium / Fine (CASH framework) */
+  function toTextureGroup(cls) {
+    const coarse = ['Sand','Loamy Sand','Sandy Loam'];
+    const fine   = ['Sandy Clay Loam','Clay Loam','Silty Clay Loam','Sandy Clay','Silty Clay','Clay'];
+    if (coarse.includes(cls)) return 'coarse';
+    if (fine.includes(cls))   return 'fine';
+    return 'medium';
+  }
+
+  function groupLabel(g) { return g.charAt(0).toUpperCase() + g.slice(1); }
+
+  /* DOM refs */
+  var toggle      = document.getElementById('tcToggle');
+  var panel       = document.getElementById('tcPanel');
+  var sandSlider  = document.getElementById('tcSandSlider');
+  var claySlider  = document.getElementById('tcClaySlider');
+  var sandVal     = document.getElementById('tcSandVal');
+  var clayVal     = document.getElementById('tcClayVal');
+  var siltVal     = document.getElementById('tcSiltVal');
+  var errorMsg    = document.getElementById('tcError');
+  var classSpan   = document.getElementById('tcClass');
+  var mapMsg      = document.getElementById('tcMapMsg');
+
+  /* Toggle open/close */
+  toggle.addEventListener('click', function() {
+    var open = panel.classList.toggle('open');
+    toggle.classList.toggle('open', open);
+    toggle.setAttribute('aria-expanded', open);
+  });
+
+  /* Update slider gradient helper */
+  function setSliderGradient(slider) {
+    var pct = ((slider.value - slider.min) / (slider.max - slider.min) * 100).toFixed(1);
+    slider.style.setProperty('--pct', pct + '%');
+  }
+
+  /* Core update */
+  function update() {
+    var s = parseInt(sandSlider.value, 10);
+    var c = parseInt(claySlider.value, 10);
+    var si = 100 - s - c;
+
+    sandVal.textContent = s + '%';
+    clayVal.textContent = c + '%';
+    setSliderGradient(sandSlider);
+    setSliderGradient(claySlider);
+
+    if (si < 0) {
+      siltVal.textContent = '--';
+      siltVal.className = 'tc-silt-val error';
+      errorMsg.classList.add('show');
+      classSpan.textContent = '--';
+      mapMsg.innerHTML = '';
+      return;
+    }
+
+    siltVal.textContent = si + '%';
+    siltVal.className = 'tc-silt-val';
+    errorMsg.classList.remove('show');
+
+    var cls   = classifySoil(s, si, c);
+    var group = toTextureGroup(cls);
+    var lbl   = groupLabel(group);
+
+    classSpan.textContent = cls;
+    mapMsg.innerHTML = '\u2192 Mapped to <strong>' + lbl + '</strong> texture group \u2014 chip updated above.';
+
+    /* Auto-select the corresponding chip */
+    document.querySelectorAll('[data-group="texture"]').forEach(function(chip) {
+      var active = chip.dataset.val === group;
+      chip.classList.toggle('active', active);
+      if (active) {
+        state.texture = group;   /* update calculator state directly */
+        updateResults();         /* refresh results */
+      }
+    });
+  }
+
+  sandSlider.addEventListener('input', update);
+  claySlider.addEventListener('input', update);
+
+  /* Init */
+  setSliderGradient(sandSlider);
+  setSliderGradient(claySlider);
+  update();
+})();
+
 </script>
 
 <footer class="sci-footer">
