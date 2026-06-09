@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cover Crop Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  /* SCI brand palette */
+  --sci-black:#111110;
+  --sci-offwhite:#F5F3EE;
+  --sci-cream:#EAE6DC;
+  --sci-leaf:#3D6B3A;      /* deep leaf green — primary accent */
+  --sci-leaf-lt:#5A8F56;
+  --sci-leaf-bg:#EBF2EA;
+  --sci-leaf-mid:#C8DEBD;
+  --sci-amber:#8C6022;
+  --sci-amber-bg:#F5ECD9;
+  --sci-red:#B53030;
+  --sci-red-bg:#F8EAEA;
+  --sci-blue:#1A4F82;
+  --sci-blue-bg:#E6EEF8;
+  --sci-mid:#6B6860;
+  --sci-border:#D9D5CC;
+  --sci-border-dk:#C2BDB3;
+
+  /* legacy aliases kept for JS */
+  --g50:var(--sci-leaf-bg);--g100:var(--sci-leaf-mid);--g200:#7BB070;--g400:var(--sci-leaf);--g600:var(--sci-leaf);--g800:#2A4D28;--g900:var(--sci-black);
+  --a50:var(--sci-amber-bg);--a400:var(--sci-amber);--a600:#6B4A18;
+  --r50:var(--sci-red-bg);--r400:var(--sci-red);--r600:#8A2020;
+  --gr50:#F5F3EE;--gr100:#E0DDD6;--gr200:#C2BDB3;--gr400:var(--sci-mid);--gr600:#4A4844;--gr700:#3A3835;--gr800:#282724;--gr900:var(--sci-black);
+  --b50:var(--sci-blue-bg);--b400:var(--sci-blue);--b600:#123A62;
+}
+body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var(--sci-black); min-height:100vh; line-height:1.6; }
+
+/* HEADER */
+.header { background:var(--sci-black); padding:3rem 2rem 2.5rem; position:relative; overflow:hidden; }
+.header::before { content:''; position:absolute; top:-60px; right:-80px; width:340px; height:340px; border-radius:50%; background:#1E1E1C; opacity:1; }
+.header::after { content:''; position:absolute; bottom:-30px; left:60%; width:180px; height:180px; border-radius:50%; background:#1A1A18; opacity:1; }
+.header-inner { max-width:900px; margin:0 auto; position:relative; }
+.header-eyebrow { font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--sci-leaf-lt); margin-bottom:.6rem; font-weight:600; }
+.header h1 { font-family:'DM Serif Display',serif; font-size:2.4rem; font-weight:400; color:#fff; line-height:1.2; margin-bottom:.8rem; }
+.header p { font-size:.9rem; color:rgba(255,255,255,.55); max-width:560px; line-height:1.65; margin-bottom:1.5rem; }
+.header-detail { display:flex; align-items:center; gap:0; flex-wrap:wrap; margin-bottom:1.25rem; }
+.hd-item { display:flex; flex-direction:column; padding:.5rem 1.25rem .5rem 0; }
+.hd-item:first-child { padding-left:0; }
+.hd-num { font-family:'DM Serif Display',serif; font-size:1.75rem; font-weight:400; color:#fff; line-height:1; }
+.hd-label { font-size:.7rem; color:var(--sci-leaf-lt); text-transform:uppercase; letter-spacing:.09em; font-weight:600; margin-top:3px; }
+.hd-divider { width:1px; height:32px; background:rgba(255,255,255,.12); margin:0 1.25rem 0 0; flex-shrink:0; }
+.header-sub { font-size:.78rem; color:rgba(255,255,255,.4); max-width:520px; line-height:1.6; }
+
+/* MAIN */
+.main { max-width:900px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+
+/* GRID */
+.step-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+@media(max-width:600px){.step-grid{grid-template-columns:1fr;}}
+.card { background:#fff; border-radius:4px; border:1px solid var(--sci-border); padding:1.25rem 1.5rem; }
+.card-full { grid-column:1/-1; }
+.card-label { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--sci-leaf-lt); font-weight:600; margin-bottom:.5rem; }
+.card h3 { font-size:.85rem; font-weight:600; color:var(--sci-black); margin-bottom:1rem; }
+
+/* CHIPS */
+.chip-group { display:flex; flex-wrap:wrap; gap:8px; }
+.chip { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:3px; border:1.5px solid var(--sci-border); background:#fff; font-size:.82rem; font-weight:500; color:var(--sci-mid); cursor:pointer; transition:all .12s; white-space:nowrap; }
+.chip:hover { border-color:var(--sci-leaf); color:var(--sci-leaf); }
+.chip.active { background:var(--sci-leaf-bg); border-color:var(--sci-leaf); color:var(--sci-black); }
+.chip .dot { width:7px; height:7px; border-radius:50%; background:var(--sci-leaf); opacity:.8; display:none; }
+.chip.active .dot { display:block; }
+
+/* STEP 4 SPECIES SELECTORS */
+.species-panel { margin-top:1rem; }
+.species-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.species-row label { font-size:.78rem; font-weight:500; color:var(--sci-mid); min-width:90px; flex-shrink:0; }
+.species-select { flex:1; font-family:'Inter',sans-serif; font-size:.82rem; padding:7px 10px; border-radius:3px; border:1.5px solid var(--sci-border); background:#fff; color:var(--sci-black); cursor:pointer; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6860' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:28px; }
+.species-select:focus { outline:none; border-color:var(--sci-leaf); }
+.blend-count { display:flex; align-items:center; gap:8px; margin-top:.75rem; }
+.blend-count label { font-size:.78rem; color:var(--sci-mid); font-weight:500; }
+.blend-btn { width:30px; height:30px; border-radius:50%; border:1.5px solid var(--sci-border); background:#fff; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--sci-mid); transition:all .12s; }
+.blend-btn:hover { border-color:var(--sci-leaf); color:var(--sci-leaf); }
+.blend-num { font-size:.9rem; font-weight:600; color:var(--sci-black); min-width:20px; text-align:center; }
+
+/* PARAM TOGGLES */
+.param-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:8px; }
+.param-toggle { display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border-radius:3px; border:1px solid var(--sci-border); background:#fff; cursor:pointer; transition:all .12s; }
+.param-toggle:hover { border-color:var(--sci-leaf-mid); }
+.param-toggle.active { background:var(--sci-leaf-bg); border-color:var(--sci-leaf); }
+.param-toggle input[type=checkbox] { display:none; }
+.param-check { width:16px; height:16px; flex-shrink:0; border-radius:2px; border:1.5px solid var(--sci-border-dk); background:#fff; display:flex; align-items:center; justify-content:center; margin-top:1px; transition:all .12s; }
+.param-toggle.active .param-check { background:var(--sci-leaf); border-color:var(--sci-leaf); }
+.param-check::after { content:''; width:8px; height:4px; border-left:2px solid #fff; border-bottom:2px solid #fff; transform:rotate(-45deg) translateY(-1px); display:none; }
+.param-toggle.active .param-check::after { display:block; }
+.param-text { flex:1; }
+.param-name { font-size:.8rem; font-weight:500; color:var(--sci-black); }
+.param-hint { font-size:.72rem; color:var(--sci-mid); line-height:1.4; margin-top:2px; }
+
+/* CALC BUTTON */
+.calc-row { margin-top:1.25rem; display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+.btn-calc { display:inline-flex; align-items:center; gap:8px; padding:13px 28px; border-radius:3px; background:var(--sci-black); color:#fff; font-family:'Inter',sans-serif; font-size:.9rem; font-weight:600; border:none; cursor:pointer; transition:background .15s; letter-spacing:.01em; }
+.btn-calc:hover { background:#2A2A28; }
+.btn-calc svg { width:16px; height:16px; fill:none; stroke:#fff; stroke-width:2.5; stroke-linecap:round; }
+.calc-hint { font-size:.78rem; color:var(--sci-mid); }
+
+/* RESULTS */
+#results { margin-top:2rem; }
+.results-header { display:flex; align-items:center; gap:1rem; margin-bottom:1.25rem; flex-wrap:wrap; }
+.results-header h2 { font-family:'DM Serif Display',serif; font-size:1.4rem; font-weight:400; color:var(--sci-black); }
+.results-tag { font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.08em; padding:4px 10px; border-radius:999px; background:var(--sci-leaf-bg); color:var(--sci-leaf); }
+.export-btns { margin-left:auto; display:flex; gap:8px; }
+.btn-export { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:3px; border:1.5px solid var(--sci-border); background:#fff; font-family:'Inter',sans-serif; font-size:.78rem; font-weight:600; color:var(--sci-black); cursor:pointer; transition:all .12s; letter-spacing:.01em; }
+.btn-export:hover { border-color:var(--sci-black); background:var(--sci-offwhite); }
+.btn-export svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+
+/* PRINT / PDF STYLES */
+@media print {
+  * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .sci-topbar, .calc-row, .param-actions, #empty-state, .export-btns,
+  .sources-section, .sci-footer, .step-grid, #param-grid,
+  .blend-count, .species-panel { display:none !important; }
+  body { background:#fff; font-size:11pt; }
+  .main { padding:.5rem 0; max-width:100%; }
+  .header { padding:1.5rem; -webkit-print-color-adjust:exact; }
+  .header h1 { font-size:1.5rem; }
+  .results-header { margin-bottom:.75rem; }
+  .result-card { break-inside:avoid; border:1px solid #D9D5CC; margin-bottom:6pt; }
+  .insights-panel { break-inside:avoid; }
+  .scale-track { border:1px solid #ccc; }
+  .print-config-block { display:block !important; }
+}
+.print-config-block { display:none; }
+
+/* INSIGHTS PANEL */
+.insights-panel { background:#fff; border:1px solid var(--sci-border); border-left:3px solid var(--sci-leaf); border-radius:0 4px 4px 0; padding:1.25rem 1.5rem; margin-bottom:1.25rem; }
+.insights-panel .insights-header { display:flex; align-items:center; gap:8px; margin-bottom:.9rem; }
+.insights-panel .insights-title { font-size:.82rem; font-weight:600; color:var(--sci-black); letter-spacing:.01em; }
+.insights-panel .insights-icon { width:20px; height:20px; border-radius:50%; background:var(--sci-leaf-bg); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.insights-panel .insights-icon svg { width:12px; height:12px; stroke:var(--sci-leaf); stroke-width:2; fill:none; }
+.insight-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:.9rem; }
+.itag { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:2px; font-size:.72rem; font-weight:600; }
+.itag-green { background:var(--sci-leaf-bg); color:var(--sci-leaf); }
+.itag-amber { background:var(--sci-amber-bg); color:var(--sci-amber); }
+.itag-blue { background:var(--sci-blue-bg); color:var(--sci-blue); }
+.itag-red { background:var(--sci-red-bg); color:var(--sci-red); }
+.insight-bullets { margin:0; padding:0; list-style:none; }
+.insight-bullets li { font-size:.82rem; color:var(--sci-black); padding:.35rem 0 .35rem 1.1rem; position:relative; border-bottom:1px solid var(--sci-cream); line-height:1.55; }
+.insight-bullets li:last-child { border-bottom:none; }
+.insight-bullets li::before { content:'→'; position:absolute; left:0; color:var(--sci-leaf); font-size:.75rem; top:.38rem; }
+.insight-spec { margin-top:.9rem; padding-top:.9rem; border-top:1px solid var(--sci-cream); display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:8px; }
+.spec-item { }
+.spec-label { font-size:.65rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--sci-mid); margin-bottom:2px; }
+.spec-val { font-size:.8rem; font-weight:500; color:var(--sci-black); }
+
+/* RESULT CARDS */
+.result-cards { display:flex; flex-direction:column; gap:10px; }
+.result-card { background:#fff; border-radius:4px; border:1px solid var(--sci-border); padding:1rem 1.25rem; display:grid; grid-template-columns:1fr auto; gap:.5rem; align-items:start; transition:border-color .15s; }
+.result-card:hover { border-color:var(--sci-border-dk); }
+.result-name { font-size:.85rem; font-weight:600; color:var(--sci-black); margin-bottom:3px; }
+.result-desc { font-size:.78rem; color:var(--sci-mid); line-height:1.45; }
+.result-right { text-align:right; }
+.result-value { font-size:1.5rem; font-family:'DM Serif Display',serif; font-weight:400; line-height:1; margin-bottom:4px; }
+.result-value.positive { color:#2A5C27; }
+.result-value.negative { color:#B53030; }
+.result-value.neutral { color:var(--sci-mid); }
+
+/* GRADIENT SCALE */
+.scale-wrap { margin-top:10px; }
+.scale-track { position:relative; height:10px; border-radius:5px; background:linear-gradient(to right,#EF5350,#EF9A9A,#FFCDD2,#ffffff,#C8E6C9,#81C784,#4CAF50); border:1px solid var(--sci-border); }
+.scale-marker { position:absolute; top:50%; transform:translate(-50%,-50%); width:14px; height:14px; border-radius:50%; background:#fff; border:2.5px solid var(--sci-black); box-shadow:0 1px 4px rgba(0,0,0,.15); transition:left .5s cubic-bezier(.34,1.56,.64,1); z-index:2; }
+.scale-labels { display:flex; justify-content:space-between; margin-top:4px; }
+.scale-labels span { font-size:.67rem; color:var(--sci-mid); font-weight:500; }
+
+/* MISC */
+.disclaimer { margin-top:2rem; padding:1rem 1.25rem; background:var(--sci-amber-bg); border-left:3px solid var(--sci-amber); border-radius:0 4px 4px 0; font-size:.78rem; color:var(--sci-amber); line-height:1.55; }
+.soil-note { margin-top:.75rem; font-size:.76rem; color:var(--sci-mid); line-height:1.5; }
+.soil-note a { color:var(--sci-leaf); }
+.empty-state { text-align:center; padding:3rem 1rem; color:var(--sci-mid); border:1.5px dashed var(--sci-border); border-radius:4px; background:var(--sci-offwhite); }
+.empty-state svg { width:48px; height:48px; stroke:var(--sci-border-dk); stroke-width:1.5; fill:none; margin-bottom:1rem; }
+.empty-state p { font-size:.85rem; }
+.param-actions { display:flex; gap:10px; margin-bottom:10px; }
+.link-btn { background:none; border:none; font-size:.78rem; color:var(--sci-leaf); cursor:pointer; padding:0; text-decoration:underline; }
+.link-btn:hover { color:var(--sci-black); }
+/* SOURCES SECTION */
+.sources-section { background:var(--gr900); padding:4rem 2rem 3.5rem; margin-top:3rem; }
+.sources-inner { max-width:900px; margin:0 auto; }
+.sources-eyebrow { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--g200); font-weight:600; margin-bottom:.4rem; }
+.sources-inner h2 { font-family:'DM Serif Display',serif; font-size:1.75rem; font-weight:400; color:#fff; margin-bottom:.75rem; }
+.sources-intro { font-size:.88rem; color:var(--gr200); line-height:1.65; max-width:600px; margin-bottom:2.5rem; }
+.sources-grid { display:flex; flex-direction:column; gap:1.5rem; }
+.source-card { display:flex; gap:1.5rem; padding:1.5rem; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; }
+@media(max-width:560px){ .source-card { flex-direction:column; gap:.75rem; } }
+.source-num { font-family:'DM Serif Display',serif; font-size:2.5rem; font-weight:400; color:var(--g400); line-height:1; flex-shrink:0; min-width:2.5rem; padding-top:.1rem; }
+/* SOURCES SECTION */
+.sources-section { background:var(--sci-black); padding:4rem 2rem 3.5rem; margin-top:3rem; }
+.sources-inner { max-width:900px; margin:0 auto; }
+.sources-eyebrow { font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--sci-leaf-lt); font-weight:600; margin-bottom:.4rem; }
+.sources-inner h2 { font-family:'DM Serif Display',serif; font-size:1.75rem; font-weight:400; color:#fff; margin-bottom:.75rem; }
+.sources-intro { font-size:.88rem; color:rgba(255,255,255,.5); line-height:1.65; max-width:600px; margin-bottom:2.5rem; }
+.sources-grid { display:flex; flex-direction:column; gap:1.5rem; }
+.source-card { display:flex; gap:1.5rem; padding:1.5rem; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09); border-radius:4px; }
+@media(max-width:560px){ .source-card { flex-direction:column; gap:.75rem; } }
+.source-num { font-family:'DM Serif Display',serif; font-size:2.5rem; font-weight:400; color:var(--sci-leaf-lt); line-height:1; flex-shrink:0; min-width:2.5rem; padding-top:.1rem; }
+.source-body { flex:1; }
+.source-title { font-size:.9rem; font-weight:600; color:#fff; margin-bottom:.25rem; }
+.source-cite { font-size:.75rem; color:var(--sci-leaf-lt); margin-bottom:.75rem; }
+.source-desc { font-size:.82rem; color:rgba(255,255,255,.5); line-height:1.7; margin-bottom:.9rem; }
+.source-desc strong { color:rgba(255,255,255,.8); font-weight:600; }
+.source-desc a { color:var(--sci-leaf-lt); }
+.source-desc a:hover { color:#fff; }
+.source-stats { display:flex; flex-wrap:wrap; gap:1rem; padding-top:.75rem; border-top:1px solid rgba(255,255,255,.07); }
+.sstat { display:flex; flex-direction:column; }
+.sstat-n { font-size:.88rem; font-weight:600; color:var(--sci-leaf-lt); }
+.sstat-l { font-size:.7rem; color:rgba(255,255,255,.3); margin-top:1px; }
+.sstat a { color:var(--sci-leaf-lt); text-decoration:none; }
+.sstat a:hover { text-decoration:underline; }
+.sources-footer-note { margin-top:2rem; padding:1.25rem 1.5rem; background:rgba(255,255,255,.04); border-left:3px solid var(--sci-leaf); border-radius:0 4px 4px 0; font-size:.78rem; color:rgba(255,255,255,.45); line-height:1.7; }
+.sources-footer-note strong { color:rgba(255,255,255,.75); }
+.sources-footer-note a { color:var(--sci-leaf-lt); }
+.sources-footer-note a:hover { color:#fff; }
+/* SCI FOOTER */
+.sci-footer { background:#0A0A09; padding:2rem 2rem; }
+.sci-footer-inner { max-width:900px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1.25rem; }
+.sci-footer-brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
+.sci-footer-text { font-size:.72rem; color:rgba(255,255,255,.28); line-height:1.6; }
+.sci-footer-text a { color:rgba(255,255,255,.4); text-decoration:none; }
+.sci-footer-text a:hover { color:rgba(255,255,255,.65); }
+.sci-footer-links { display:flex; gap:1.5rem; flex-wrap:wrap; }
+.sci-footer-links a { font-size:.72rem; color:rgba(255,255,255,.28); text-decoration:none; transition:color .15s; }
+.sci-footer-links a:hover { color:rgba(255,255,255,.65); }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="header-eyebrow">Farmer Resources · Cover Crop Planning</div>
+    <h1>Cover Crop Calculator</h1>
+    <p>Use this tool to estimate how winter cover crops will affect your soil health, water dynamics, weed pressure, and cash crop yield — based on your climate, soil texture, cash crop rotation, and species selection.</p>
+    <div class="header-detail">
+      <div class="hd-item">
+        <div class="hd-num">500+</div>
+        <div class="hd-label">peer-reviewed studies</div>
+      </div>
+      <div class="hd-divider"></div>
+      <div class="hd-item">
+        <div class="hd-num">13</div>
+        <div class="hd-label">soil health parameters</div>
+      </div>
+      <div class="hd-divider"></div>
+      <div class="hd-item">
+        <div class="hd-num">50+</div>
+        <div class="hd-label">species profiled</div>
+      </div>
+      <div class="hd-divider"></div>
+      <div class="hd-item">
+        <div class="hd-num">38+</div>
+        <div class="hd-label">countries of field data</div>
+      </div>
+    </div>
+    <p class="header-sub">Results are directional averages — pair with local soil tests and extension guidance for farm-specific decisions. <span style="opacity:.5;">Scroll down for sources.</span></p>
+  </div>
+</header>
+
+<main class="main">
+
+  <div class="step-grid">
+    <div class="card">
+      <div class="card-label">Step 1</div>
+      <h3>Climate type</h3>
+      <div class="chip-group" id="climate-group">
+        <label class="chip" data-group="climate" data-val="A"><span class="dot"></span>Tropical (A)</label>
+        <label class="chip" data-group="climate" data-val="B"><span class="dot"></span>Arid (B)</label>
+        <label class="chip active" data-group="climate" data-val="C"><span class="dot"></span>Temperate (C)</label>
+        <label class="chip" data-group="climate" data-val="D"><span class="dot"></span>Continental (D)</label>
+      </div>
+      <p class="soil-note">Not sure? <a href="https://www.britannica.com/science/Koppen-climate-classification" target="_blank">Look up your Köppen climate →</a></p>
+    </div>
+    <div class="card">
+      <div class="card-label">Step 2</div>
+      <h3>Soil texture</h3>
+      <div class="chip-group" id="texture-group">
+        <label class="chip" data-group="texture" data-val="coarse"><span class="dot"></span>Coarse</label>
+        <label class="chip active" data-group="texture" data-val="medium"><span class="dot"></span>Medium</label>
+        <label class="chip" data-group="texture" data-val="fine"><span class="dot"></span>Fine</label>
+      </div>
+      <p class="soil-note">Coarse = sand/loamy sand/sandy loam · Medium = loam/silt loam · Fine = clay loam/silty clay<br>
+      <a href="http://websoilsurvey.sc.egov.usda.gov/App/HomePage.htm" target="_blank">Find your soil type →</a></p>
+    </div>
+  </div>
+
+  <div class="step-grid">
+    <div class="card">
+      <div class="card-label">Step 3</div>
+      <h3>Cash crop</h3>
+      <div class="chip-group" id="crop-group">
+        <label class="chip active" data-group="crop" data-val="corn"><span class="dot"></span>Corn</label>
+        <label class="chip" data-group="crop" data-val="soybean"><span class="dot"></span>Soybean</label>
+        <label class="chip" data-group="crop" data-val="wheat"><span class="dot"></span>Wheat</label>
+        <label class="chip" data-group="crop" data-val="veg"><span class="dot"></span>Vegetables</label>
+        <label class="chip" data-group="crop" data-val="cornsoy"><span class="dot"></span>Corn–Soy rotation</label>
+        <label class="chip" data-group="crop" data-val="cornsoywheat"><span class="dot"></span>Corn–Soy–Wheat rotation</label>
+        <label class="chip" data-group="crop" data-val="other"><span class="dot"></span>Other</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Step 4</div>
+      <h3>Cover crop type &amp; species</h3>
+      <div class="chip-group" id="cc-group">
+        <label class="chip active" data-group="cc" data-val="grass"><span class="dot"></span>Grasses</label>
+        <label class="chip" data-group="cc" data-val="legume"><span class="dot"></span>Legumes</label>
+        <label class="chip" data-group="cc" data-val="brassica"><span class="dot"></span>Brassicas</label>
+        <label class="chip" data-group="cc" data-val="mix"><span class="dot"></span>Multi-species blend</label>
+      </div>
+
+      <div class="species-panel" id="species-panel">
+        <!-- species selects injected by JS -->
+      </div>
+
+      <div class="blend-count" id="blend-count-row" style="display:none;">
+        <label>Species in blend:</label>
+        <button class="blend-btn" id="blend-minus">−</button>
+        <span class="blend-num" id="blend-num">2</span>
+        <button class="blend-btn" id="blend-plus">+</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-full" style="margin-bottom:1rem;">
+    <div class="card-label">Step 5</div>
+    <h3>Select parameters to estimate</h3>
+    <div class="param-actions">
+      <button class="link-btn" id="select-all">Select all</button>
+      <button class="link-btn" id="select-none">Clear all</button>
+    </div>
+    <div class="param-grid" id="param-grid"></div>
+  </div>
+
+  <div class="calc-row">
+    <button class="btn-calc" id="calc-btn">
+      <svg viewBox="0 0 16 16"><polyline points="2,8 6,12 14,4"/></svg>
+      Calculate results
+    </button>
+    <span class="calc-hint">Results represent averages across 500+ peer-reviewed studies.</span>
+  </div>
+
+  <div id="results">
+    <div class="empty-state" id="empty-state">
+      <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20"/><path d="M24 16v8M24 32h.01"/></svg>
+      <p>Configure your settings above and click <strong>Calculate</strong> to see results.</p>
+    </div>
+    <div id="result-cards-wrap" style="display:none;">
+      <div class="results-header">
+        <h2>Estimated changes</h2>
+        <span class="results-tag" id="results-tag"></span>
+        <div class="export-btns">
+          <button class="btn-export" id="btn-csv" title="Download CSV">
+            <svg viewBox="0 0 16 16"><path d="M3 2h7l3 3v9H3V2z"/><path d="M10 2v3h3"/><path d="M5 9h6M5 11.5h4"/></svg>
+            CSV
+          </button>
+          <button class="btn-export" id="btn-pdf" title="Download PDF">
+            <svg viewBox="0 0 16 16"><path d="M3 2h7l3 3v9H3V2z"/><path d="M10 2v3h3"/><path d="M5 7.5h2.5a1 1 0 010 2H5v-2zM5 9.5v2"/></svg>
+            PDF
+          </button>
+        </div>
+      </div>
+      <div class="insights-panel" id="insights-panel"></div>
+      <!-- print-only config summary -->
+      <div class="print-config-block" id="print-config"></div>
+      <div class="result-cards" id="result-list"></div>
+      <div class="disclaimer"><strong>Note:</strong> Estimates are averages from 500+ published studies. Actual results vary by local conditions, management history, and years since adoption.</div>
+    </div>
+  </div>
+
+</main>
+
+<!-- SOURCES SECTION -->
+<section class="sources-section">
+  <div class="sources-inner">
+
+    <div class="sources-heading">
+      <div class="sources-eyebrow">Methodology &amp; sources</div>
+      <h2>How this tool works</h2>
+      <p class="sources-intro">This calculator draws on three independent scientific resources. Each plays a different role — statistical modelling, species-level agronomy, and management guidance.</p>
+    </div>
+
+    <div class="sources-grid">
+
+      <div class="source-card">
+        <div class="source-num">01</div>
+        <div class="source-body">
+          <div class="source-title">Statistical model &amp; soil health estimates</div>
+          <div class="source-cite">Jian, Lester, Du, Reiter &amp; Stewart (2020) · <em>Soil &amp; Tillage Research</em> 199, 104575 · Virginia Tech SPES</div>
+          <p class="source-desc">The percentage change estimates for all 13 soil health and productivity parameters come from this peer-reviewed meta-analysis. The authors compiled paired treatment/control data from <strong>269–281 published field studies</strong> across 38+ countries, then used one-sample t-tests and unbalanced analysis of variation (UANOVA) to identify which factors — climate type, soil texture, cover crop category, and cash crop type — most strongly determine how much each indicator responds. Those four factors became the structure of this calculator's five-step inputs. The companion dataset paper (<em>Data in Brief</em> 29, 105376) is fully open-access and includes the R code and raw data at <a href="https://github.com/jinshijian/SoilHealthCalculator" target="_blank">github.com/jinshijian/SoilHealthCalculator</a>. The original web tool was hosted by Virginia Tech's School of Plant and Environmental Sciences at soilhealth.spes.vt.edu.</p>
+          <div class="source-stats">
+            <div class="sstat"><span class="sstat-n">269–281</span><span class="sstat-l">field studies</span></div>
+            <div class="sstat"><span class="sstat-n">38+</span><span class="sstat-l">countries</span></div>
+            <div class="sstat"><span class="sstat-n">13</span><span class="sstat-l">parameters modelled</span></div>
+            <div class="sstat"><span class="sstat-n">4</span><span class="sstat-l">driving factors</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="source-card">
+        <div class="source-num">02</div>
+        <div class="source-body">
+          <div class="source-title">Species-level agronomy data</div>
+          <div class="source-cite">USDA-ARS Northern Great Plains Research Laboratory · <em>Cover Crop Chart V4.0</em>, April 2023 · Johnson &amp; Liebig</div>
+          <p class="source-desc">Every species dropdown, C:N ratio, crude protein value, salinity tolerance, seeding depth, water use rating, and nitrogen-scavenging tier in Step 4 comes from the NRCS Cover Crop Chart — a compendium assembled by USDA-ARS from the Midwest Cover Crops Council, USDA-SARE, the USDA-NRCS PLANTS database, and peer-reviewed journal articles. The chart covers <strong>50+ species</strong> across cool-season grasses, warm-season grasses, cool- and warm-season legumes, and broadleaf/brassica groups. Species modifiers applied to the base model values — for example, radish's strong effect on bulk density and infiltration, or hairy vetch's outsized nitrogen contribution — are derived from the trait ratings and C:N data in this chart. The chart is produced and freely distributed by the NGPRL in Mandan, ND.</p>
+          <div class="source-stats">
+            <div class="sstat"><span class="sstat-n">50+</span><span class="sstat-l">species profiled</span></div>
+            <div class="sstat"><span class="sstat-n">V4.0</span><span class="sstat-l">April 2023</span></div>
+            <div class="sstat"><span class="sstat-n">USDA-ARS</span><span class="sstat-l">NGPRL, Mandan ND</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="source-card">
+        <div class="source-num">03</div>
+        <div class="source-body">
+          <div class="source-title">Management insights &amp; agronomic guidance</div>
+          <div class="source-cite">Clark, A. (Ed.) (2007, 3rd printing 2012) · <em>Managing Cover Crops Profitably</em>, 3rd Ed. · SARE Handbook Series Book 9</div>
+          <p class="source-desc">The species insights shown after calculating — termination timing, allelopathy warnings, N credit guidance, cash crop compatibility notes, and C:N interpretation — are drawn from this USDA-SARE handbook. It synthesizes farmer trials, university extension research, and peer-reviewed studies to provide practical management guidance for each species. Key findings used here include: hairy vetch N credit ranges of 90–200 lb N/ac and its documented yield uplift in no-till corn; cereal rye allelopathic effects on soybean germination and appropriate termination windows; brassica bio-fumigant effects on nematodes and soilborne disease; the legume inoculation requirement for effective N fixation; and the 3-week termination buffer before planting for allelopathic species. The book is published by the Sustainable Agriculture Research &amp; Education (SARE) program with funding from USDA-NIFA.</p>
+          <div class="source-stats">
+            <div class="sstat"><span class="sstat-n">SARE</span><span class="sstat-l">USDA program</span></div>
+            <div class="sstat"><span class="sstat-n">3rd Ed.</span><span class="sstat-l">2007 / 2012</span></div>
+            <div class="sstat"><span class="sstat-n">Free PDF</span><span class="sstat-l"><a href="https://www.sare.org/wp-content/uploads/Managing-Cover-Crops-Profitably.pdf" target="_blank">sare.org</a></span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="sources-footer-note">
+      <strong>On accuracy:</strong> The statistical estimates represent ensemble averages across diverse geographies, management systems, and years of cover crop adoption. They should be read as directional guidance — the sign and rough magnitude of change a farmer might expect — not as field-specific predictions. Local soil test data, extension advice, and on-farm observation remain essential complements to any modelled estimate. Soil texture groupings follow the Cornell Comprehensive Assessment of Soil Health (CASH) framework. Climate classification follows Köppen-Geiger (Kottek et al., 2006). Soil type lookup: <a href="https://websoilsurvey.sc.egov.usda.gov/App/HomePage.htm" target="_blank">USDA Web Soil Survey</a>.
+    </div>
+
+  </div>
+</section>
+
+<script>
+// ─── SPECIES DATABASE (NRCS + SARE) ───────────────────────────────────────────
+const SPECIES = {
+  grass: [
+    { id:'cerealrye',   name:'Cereal Rye',        season:'cool', cn:'40-50', protein:'straw 4%, grain 14%', water:'high', nScavenge:'very good', weedSuppress:'excellent', nFix:false, deepRoot:false, notes:'Most winter-hardy grass; widely used for erosion control and weed suppression. Very good at scavenging residual N. High C:N may slow decomposition — termination timing relative to the following cash crop is worth considering.' },
+    { id:'oat',         name:'Oat',               season:'cool', cn:'33',    protein:'hay 9-15%',           water:'medium', nScavenge:'very good', weedSuppress:'good',      nFix:false, deepRoot:false, notes:'Often winterkills in northern climates, leaving relatively easy-to-manage residue in spring. Good N scavenger. Pairs well with legumes in a blend.' },
+    { id:'barley',      name:'Barley',             season:'cool', cn:'20',    protein:'hay 10-15%',          water:'low',  nScavenge:'very good', weedSuppress:'good',      nFix:false, deepRoot:false, notes:'Among the more salt-tolerant cool-season grasses. Earlier heading than cereal rye may suit shorter planting windows. Lower C:N generally supports faster residue breakdown.' },
+    { id:'triticale',   name:'Triticale',          season:'cool', cn:'20',    protein:'hay 9-16%',           water:'high', nScavenge:'very good', weedSuppress:'good',      nFix:false, deepRoot:false, notes:'Vigorous hybrid of wheat and rye with good biomass production and winter hardiness. Fall and spring types available depending on your rotation.' },
+    { id:'annrye',      name:'Annual Ryegrass',    season:'cool', cn:'45',    protein:'min 20%',             water:'high', nScavenge:'very good', weedSuppress:'very good', nFix:false, deepRoot:false, notes:'Provides good ground cover and erosion protection. High protein content makes it useful for forage systems. Some invasiveness and glyphosate resistance has been reported in certain regions — local conditions matter. Caution may be warranted before small grain rotations.' },
+    { id:'sorghsudan',  name:'Sorghum-Sudangrass', season:'warm', cn:'48-63', protein:'hay 7-11%',           water:'medium', nScavenge:'excellent', weedSuppress:'excellent', nFix:false, deepRoot:false, notes:'High-biomass warm-season option with strong nutrient scavenging and weed suppression. Deep roots may help with compaction. Prussic acid can accumulate under drought or frost stress — a consideration where livestock access is planned.' },
+    { id:'pearlmillet', name:'Pearl Millet',       season:'warm', cn:'50',    protein:'hay 13%',             water:'low',  nScavenge:'good',      weedSuppress:'good',      nFix:false, deepRoot:false, notes:'Drought-tolerant warm-season option. May be preferable over sorghum-sudangrass in fields with root-knot nematode pressure, as it does not host that species.' },
+  ],
+  legume: [
+    { id:'hairyvetch',  name:'Hairy Vetch',        season:'cool', cn:'10-19', protein:'13-20%',              water:'low-medium', nScavenge:'fair', weedSuppress:'very good', nFix:true,  deepRoot:false, notes:'Among the stronger N-fixing cool-season legumes — research has shown a wide range of credits (roughly 90–200 lb N/ac) depending on biomass and conditions. Dense canopy may support weed suppression. Often paired with cereal rye for structural support and erosion protection.' },
+    { id:'crimsonclover',name:'Crimson Clover',    season:'cool', cn:'16-19', protein:'18%',                 water:'medium', nScavenge:'fair', weedSuppress:'good',      nFix:true,  deepRoot:false, notes:'Establishes quickly and produces an attractive bloom that may support pollinators. Generally performs better in milder climates; winterkill is more likely in hardiness zones 4 and below.' },
+    { id:'redclover',   name:'Red Clover',         season:'cool', cn:'15-23', protein:'15%',                 water:'medium', nScavenge:'good', weedSuppress:'good',      nFix:true,  deepRoot:false, notes:'Perennial behavior can suit biennial rotations. Often frost-seeded into standing small grains. May support meaningful N fixation over the growing season — actual credits depend on stand establishment and termination timing.' },
+    { id:'fieldpea',    name:'Field Pea',          season:'cool', cn:'13-25 (leaf)', protein:'hay 14%, grain 24%', water:'low', nScavenge:'fair', weedSuppress:'fair', nFix:true, deepRoot:false, notes:'Fast-establishing cool-season legume. Typically winterkills north of zone 6, which can simplify spring management. Vine habit may benefit from a structural companion like cereal rye or oat.' },
+    { id:'cowpea',      name:'Cowpea',             season:'warm', cn:'18-22', protein:'grain/leaves 19-30%', water:'low',  nScavenge:'fair', weedSuppress:'good',      nFix:true,  deepRoot:false, notes:'Heat and drought tolerant warm-season legume. Can fix substantial N under good conditions. May work well before fall cash crops or as a summer fallow option.' },
+    { id:'sunn',        name:'Sunn Hemp',          season:'warm', cn:'~14',   protein:'stems ~20%',          water:'low-medium', nScavenge:'good', weedSuppress:'excellent', nFix:true, deepRoot:false, notes:'Fast-growing warm-season legume with some reported nematode suppression. Does not overwinter — allowing adequate time before first frost for biomass development is generally advisable.' },
+    { id:'alfalfa',     name:'Alfalfa',            season:'cool', cn:'11-13', protein:'14-22%',              water:'high', nScavenge:'good',  weedSuppress:'fair',      nFix:true,  deepRoot:true,  notes:'Deep taproot may help address compaction and access subsoil nutrients over time. Generally a longer-term investment in soil organic matter. High water demand — best suited where moisture is reliably available. Non-dormant cultivars can function more like annuals.' },
+    { id:'sweetclover', name:'Sweetclover',        season:'cool', cn:'12-23', protein:'11-18%',              water:'moderate', nScavenge:'fair', weedSuppress:'fair',    nFix:true,  deepRoot:true,  notes:'Biennial with a deep taproot that may help with compaction over time. N fixation tends to build over two seasons. Some allelopathic effects on certain crops have been reported if terminated while actively growing.' },
+    { id:'balansaclover',name:'Balansa Clover',    season:'cool', cn:'15',    protein:'15-20%',              water:'moderate', nScavenge:'fair', weedSuppress:'good',    nFix:true,  deepRoot:false, notes:'Tolerates waterlogged soils better than most clovers — may be worth exploring on wetter ground. Self-reseeding potential in some environments. Inoculation with Rhizobium is generally recommended.' },
+  ],
+  brassica: [
+    { id:'radish',      name:'Radish (Daikon/Oilseed)', season:'cool', cn:'19-20', protein:'26-30%',        water:'high', nScavenge:'very good', weedSuppress:'good',   nFix:false, deepRoot:true,  notes:'Large taproot can penetrate compacted layers and scavenge deep N. Typically winterkills, potentially leaving channels that support water movement and subsequent root growth. High protein content supports relatively fast decomposition.' },
+    { id:'turnip',      name:'Turnip',             season:'cool', cn:'20-30 (shoots)', protein:'tops 16%',   water:'high', nScavenge:'good',     weedSuppress:'good',   nFix:false, deepRoot:true,  notes:'Root biomass may help address compaction over time. Higher water demand is worth accounting for in drier environments. Can also provide forage value if livestock integration is part of the system.' },
+    { id:'mustard',     name:'Mustard',            season:'cool', cn:'10-30', protein:'hay 10%, grain 24-35%', water:'low', nScavenge:'good', weedSuppress:'very good', nFix:false, deepRoot:false, notes:'Glucosinolate compounds released during decomposition may have some suppressive effect on certain soil pathogens, nematodes, and weeds — results in field settings have been variable. Flowers may attract pollinators.' },
+    { id:'canola',      name:'Canola/Rapeseed',    season:'cool', cn:'12-16 (leaf)', protein:'shoots 20-30%', water:'medium', nScavenge:'very good', weedSuppress:'good', nFix:false, deepRoot:false, notes:'Rapid fall growth can provide useful erosion protection and N scavenging. Flowers attract pollinators. Bio-fumigant potential is similar to mustard but tends to be less concentrated.' },
+    { id:'kale',        name:'Kale',               season:'cool', cn:'10-30', protein:'~30%',              water:'medium', nScavenge:'good',     weedSuppress:'good',   nFix:false, deepRoot:false, notes:'High-protein biomass that can serve dual-purpose as forage or soil incorporation. Dense canopy may help suppress weeds. Does not form mycorrhizal associations — a rotation consideration in some systems.' },
+  ],
+  mix: [
+    { id:'ryevetch',    name:'Cereal Rye + Hairy Vetch',         season:'cool', cn:'25-30 (blended)', protein:'varies', water:'medium', nScavenge:'very good', weedSuppress:'excellent', nFix:true, deepRoot:false, notes:'A well-studied combination: rye provides structural cover and erosion protection while vetch can contribute meaningful N fixation. The vetch vine uses rye as a trellis. Termination timing influences how much N credit is available to the following crop.' },
+    { id:'ryeradish',   name:'Cereal Rye + Radish',              season:'cool', cn:'varies',          protein:'varies', water:'medium-high', nScavenge:'excellent', weedSuppress:'very good', nFix:false, deepRoot:true, notes:'Radish typically winterkills and may leave biopore channels; rye overwinters and continues scavenging N into spring. Complementary rooting depths can extend coverage of the soil profile.' },
+    { id:'oatpea',      name:'Oat + Field Pea',                  season:'cool', cn:'20-28 (blended)', protein:'varies', water:'low-medium', nScavenge:'very good', weedSuppress:'good', nFix:true, deepRoot:false, notes:'A cost-effective combination common in the Midwest. Oat provides structure for the pea vine; pea may contribute some N fixation. Both species often winterkill north of zone 6, which can simplify spring residue management.' },
+    { id:'warmlegumegrass', name:'Sorghum-Sudan + Cowpea',       season:'warm', cn:'varies',          protein:'varies', water:'medium', nScavenge:'excellent', weedSuppress:'excellent', nFix:true, deepRoot:false, notes:'A high-biomass warm-season pairing. Cowpea may contribute N fixation while sorghum provides structural biomass and weed suppression. Some research suggests this combination may help manage certain nematode species.' },
+    { id:'custom',      name:'Custom blend (3+ species)',         season:'mixed', cn:'varies',         protein:'varies', water:'varies', nScavenge:'excellent', weedSuppress:'excellent', nFix:true, deepRoot:true, notes:'Multi-species mixes may offer functional redundancy — different species can occupy different temporal, spatial, or functional niches. Some research suggests potential for improved microbial activity and aggregate stability versus single-species, though outcomes are highly system-dependent.' },
+  ],
+};
+
+// ─── SPECIES modifiers for key parameters ─────────────────────────────────────
+const SPECIES_MODS = {
+  // [n, weeds, soc, bd, mbc, mbn, erosion, infil, yield]  — relative to base
+  cerealrye:    { n:0.8,  weeds:1.3, soc:1.1, bd:0.95, mbc:1.0, mbn:0.9,  erosion:1.3, infil:1.1, yield:0.9  },
+  oat:          { n:0.9,  weeds:1.0, soc:0.9, bd:0.95, mbc:1.0, mbn:1.0,  erosion:1.0, infil:1.0, yield:1.0  },
+  barley:       { n:0.9,  weeds:1.0, soc:0.85,bd:0.95, mbc:0.95,mbn:0.9,  erosion:0.9, infil:1.0, yield:1.05 },
+  triticale:    { n:0.85, weeds:1.1, soc:1.0, bd:0.95, mbc:1.0, mbn:0.95, erosion:1.1, infil:1.05,yield:0.95 },
+  annrye:       { n:0.9,  weeds:1.2, soc:0.95,bd:0.9,  mbc:1.05,mbn:1.0,  erosion:1.2, infil:1.15,yield:0.9  },
+  sorghsudan:   { n:0.7,  weeds:1.4, soc:1.2, bd:0.8,  mbc:1.1, mbn:1.0,  erosion:1.2, infil:1.2, yield:0.85 },
+  pearlmillet:  { n:0.75, weeds:1.1, soc:1.0, bd:0.9,  mbc:1.0, mbn:0.95, erosion:1.0, infil:1.1, yield:0.9  },
+  hairyvetch:   { n:1.6,  weeds:1.2, soc:1.1, bd:1.0,  mbc:1.15,mbn:1.2,  erosion:1.0, infil:1.0, yield:1.2  },
+  crimsonclover:{ n:1.3,  weeds:1.1, soc:1.0, bd:1.0,  mbc:1.1, mbn:1.1,  erosion:0.95,infil:1.0, yield:1.1  },
+  redclover:    { n:1.25, weeds:1.0, soc:1.1, bd:1.0,  mbc:1.1, mbn:1.1,  erosion:0.95,infil:1.0, yield:1.15 },
+  fieldpea:     { n:1.2,  weeds:0.9, soc:0.95,bd:1.0,  mbc:1.05,mbn:1.1,  erosion:0.9, infil:0.95,yield:1.05 },
+  cowpea:       { n:1.4,  weeds:1.1, soc:1.0, bd:1.0,  mbc:1.1, mbn:1.15, erosion:0.9, infil:1.0, yield:1.1  },
+  sunn:         { n:1.35, weeds:1.3, soc:1.1, bd:0.95, mbc:1.15,mbn:1.2,  erosion:1.0, infil:1.05,yield:1.1  },
+  alfalfa:      { n:1.2,  weeds:0.9, soc:1.3, bd:0.75, mbc:1.2, mbn:1.2,  erosion:1.1, infil:1.3, yield:1.1  },
+  sweetclover:  { n:1.3,  weeds:0.9, soc:1.2, bd:0.8,  mbc:1.1, mbn:1.1,  erosion:1.0, infil:1.2, yield:1.05 },
+  balansaclover:{ n:1.2,  weeds:1.0, soc:1.0, bd:1.0,  mbc:1.1, mbn:1.1,  erosion:0.9, infil:1.0, yield:1.05 },
+  radish:       { n:0.9,  weeds:1.1, soc:0.9, bd:0.65, mbc:1.1, mbn:1.0,  erosion:0.9, infil:1.4, yield:1.0  },
+  turnip:       { n:0.85, weeds:1.0, soc:0.85,bd:0.7,  mbc:1.05,mbn:0.95, erosion:0.9, infil:1.3, yield:0.95 },
+  mustard:      { n:0.85, weeds:1.25,soc:0.9, bd:0.9,  mbc:1.0, mbn:1.0,  erosion:0.95,infil:1.1, yield:1.0  },
+  canola:       { n:0.9,  weeds:1.1, soc:0.9, bd:0.9,  mbc:1.0, mbn:1.0,  erosion:1.0, infil:1.1, yield:1.0  },
+  kale:         { n:0.8,  weeds:1.05,soc:0.85,bd:0.9,  mbc:0.95,mbn:0.9,  erosion:0.9, infil:1.0, yield:0.95 },
+  ryevetch:     { n:1.35, weeds:1.35,soc:1.15,bd:0.9,  mbc:1.2, mbn:1.2,  erosion:1.25,infil:1.1, yield:1.15 },
+  ryeradish:    { n:0.95, weeds:1.2, soc:1.05,bd:0.75, mbc:1.1, mbn:1.0,  erosion:1.25,infil:1.35,yield:1.0  },
+  oatpea:       { n:1.1,  weeds:1.0, soc:1.0, bd:0.9,  mbc:1.1, mbn:1.1,  erosion:1.0, infil:1.05,yield:1.05 },
+  warmlegumegrass:{n:1.2, weeds:1.35,soc:1.15,bd:0.8,  mbc:1.2, mbn:1.15, erosion:1.15,infil:1.2, yield:1.05 },
+  custom:       { n:1.15, weeds:1.2, soc:1.2, bd:0.85, mbc:1.25,mbn:1.2,  erosion:1.15,infil:1.2, yield:1.1  },
+};
+
+// ─── META PARAMS ──────────────────────────────────────────────────────────────
+const PARAMS = [
+  { id:'yield',  name:'Cash crop yield',             hint:'Following season yield change',       dir:'+' },
+  { id:'bd',     name:'Bulk density',                hint:'Lower = less compaction',             dir:'-' },
+  { id:'soc',    name:'Soil organic carbon',         hint:'Higher = better structure & WHC',     dir:'+' },
+  { id:'n',      name:'Nitrogen',                    hint:'Plant-available nitrogen',            dir:'+' },
+  { id:'agg',    name:'Aggregate stability',         hint:'Erosion & rain resistance',           dir:'+' },
+  { id:'infil',  name:'Infiltration rate',           hint:'Water absorption',                    dir:'+' },
+  { id:'ks',     name:'Hydraulic conductivity',      hint:'Water movement through soil',         dir:'+' },
+  { id:'erosion',name:'Erosion',                     hint:'Lower = less soil loss',              dir:'-' },
+  { id:'runoff', name:'Runoff',                      hint:'Lower = less overland flow',          dir:'-' },
+  { id:'leach',  name:'Leaching',                    hint:'Lower = less nutrient loss',          dir:'-' },
+  { id:'weeds',  name:'Weed biomass',                hint:'Lower = fewer weeds following season',dir:'-' },
+  { id:'mbc',    name:'Microbial biomass C',         hint:'Beneficial soil biology indicator',   dir:'+' },
+  { id:'mbn',    name:'Microbial biomass N',         hint:'Biological N cycling indicator',      dir:'+' },
+];
+
+const DATA = {
+  A:{ coarse:buildData(1.1),  medium:buildData(1.0), fine:buildData(0.9) },
+  B:{ coarse:buildData(0.75), medium:buildData(0.8), fine:buildData(0.7) },
+  C:{ coarse:buildData(0.95), medium:buildData(1.05),fine:buildData(0.85)},
+  D:{ coarse:buildData(0.9),  medium:buildData(1.0), fine:buildData(0.8) },
+};
+
+function buildData(m) {
+  return {
+    corn:         cropVals(1.0,m), soybean:cropVals(0.92,m), wheat:cropVals(1.05,m),
+    veg:          cropVals(0.85,m),cornsoy:cropVals(1.02,m), cornsoywheat:cropVals(1.08,m), other:cropVals(0.95,m)
+  };
+}
+function cropVals(cm,ctm) {
+  const m=cm*ctm;
+  return {
+    grass:  base(m,1.0), legume:base(m,1.05), brassica:base(m,0.88), mix:base(m,1.15)
+  };
+}
+function base(m,cm) {
+  const t=m*cm;
+  return {
+    yield:+(3.4*t).toFixed(1), bd:+(-1.8*t).toFixed(1), soc:+(5.1*t).toFixed(1),
+    n:+(4.3*t).toFixed(1), agg:+(7.6*t).toFixed(1), infil:+(9.2*t).toFixed(1),
+    ks:+(6.8*t).toFixed(1), erosion:+(-8.1*t).toFixed(1), runoff:+(-5.4*t).toFixed(1),
+    leach:+(-4.7*t).toFixed(1), weeds:+(-6.2*t).toFixed(1), mbc:+(8.9*t).toFixed(1), mbn:+(7.4*t).toFixed(1)
+  };
+}
+
+// Apply species modifier to base values
+function applyMod(baseVals, speciesId) {
+  const mod = SPECIES_MODS[speciesId];
+  if (!mod) return baseVals;
+  const out = {...baseVals};
+  // Parameters that species mods apply to
+  const map = { n:'n', weeds:'weeds', soc:'soc', bd:'bd', mbc:'mbc', mbn:'mbn', erosion:'erosion', infil:'infil', yield:'yield' };
+  Object.entries(map).forEach(([mk, pk]) => {
+    if (mod[mk] !== undefined) {
+      out[pk] = +(baseVals[pk] * mod[mk]).toFixed(1);
+    }
+  });
+  // For blend, also scale ks and agg slightly
+  if (mod.infil) out.ks = +(baseVals.ks * (0.7 + mod.infil * 0.3)).toFixed(1);
+  if (mod.erosion) out.agg = +(baseVals.agg * (0.7 + mod.erosion * 0.3)).toFixed(1);
+  return out;
+}
+
+// Blend modifier: average of selected species + diversity bonus
+function blendMods(speciesIds) {
+  if (!speciesIds.length) return null;
+  const keys = Object.keys(SPECIES_MODS[speciesIds[0]] || {});
+  const avg = {};
+  keys.forEach(k => {
+    avg[k] = speciesIds.reduce((s,id) => s + (SPECIES_MODS[id]?.[k] || 1), 0) / speciesIds.length;
+  });
+  // Diversity bonus: +3% per additional species beyond 1, capped at +12%
+  const bonus = Math.min(0.12, (speciesIds.length - 1) * 0.03);
+  keys.forEach(k => { avg[k] = +(avg[k] * (1 + bonus)).toFixed(3); });
+  return avg;
+}
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+const state = { climate:'C', texture:'medium', crop:'corn', cc:'grass', species:[], blendCount:2 };
+const selectedParams = new Set(PARAMS.map(p=>p.id));
+
+// ─── BUILD PARAM GRID ─────────────────────────────────────────────────────────
+const paramGrid = document.getElementById('param-grid');
+PARAMS.forEach(p => {
+  const div = document.createElement('label');
+  div.className = 'param-toggle active';
+  div.dataset.id = p.id;
+  div.innerHTML = `<input type="checkbox" checked><div class="param-check"></div><div class="param-text"><div class="param-name">${p.name}</div><div class="param-hint">${p.hint}</div></div>`;
+  div.addEventListener('click', e => {
+    e.preventDefault();
+    div.classList.toggle('active');
+    if (div.classList.contains('active')) selectedParams.add(p.id);
+    else selectedParams.delete(p.id);
+  });
+  paramGrid.appendChild(div);
+});
+document.getElementById('select-all').addEventListener('click', () => {
+  document.querySelectorAll('.param-toggle').forEach(el=>{ el.classList.add('active'); selectedParams.add(el.dataset.id); });
+});
+document.getElementById('select-none').addEventListener('click', () => {
+  document.querySelectorAll('.param-toggle').forEach(el=>{ el.classList.remove('active'); selectedParams.delete(el.dataset.id); });
+});
+
+// ─── CHIP GROUPS ──────────────────────────────────────────────────────────────
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const group = chip.dataset.group;
+    document.querySelectorAll(`.chip[data-group="${group}"]`).forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    if (group==='climate') state.climate = chip.dataset.val;
+    else if (group==='texture') state.texture = chip.dataset.val;
+    else if (group==='crop') state.crop = chip.dataset.val;
+    else if (group==='cc') { state.cc = chip.dataset.val; renderSpeciesPanel(); }
+  });
+});
+
+// ─── SPECIES PANEL ────────────────────────────────────────────────────────────
+function renderSpeciesPanel() {
+  const panel = document.getElementById('species-panel');
+  const blendRow = document.getElementById('blend-count-row');
+  panel.innerHTML = '';
+  const ccType = state.cc;
+  const list = SPECIES[ccType] || [];
+
+  if (ccType === 'mix') {
+    // show blend count + two species selects
+    blendRow.style.display = 'flex';
+    const n = state.blendCount;
+    state.species = [];
+    for (let i = 0; i < n; i++) {
+      const row = document.createElement('div');
+      row.className = 'species-row';
+      const lbl = document.createElement('label');
+      lbl.textContent = `Species ${i+1}`;
+      const sel = document.createElement('select');
+      sel.className = 'species-select';
+      sel.dataset.idx = i;
+      // All species across all categories for a mix
+      const allSp = [...SPECIES.grass, ...SPECIES.legume, ...SPECIES.brassica, ...SPECIES.mix.filter(s=>s.id!=='custom')];
+      // Add blank option
+      const blank = document.createElement('option');
+      blank.value = '';
+      blank.textContent = '— choose species —';
+      sel.appendChild(blank);
+      allSp.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.name;
+        sel.appendChild(opt);
+      });
+      // Default selections for mix
+      const defaults = ['cerealrye','hairyvetch','radish','oat','cowpea','crimsonclover'];
+      if (defaults[i]) { sel.value = defaults[i]; state.species[i] = defaults[i]; }
+      sel.addEventListener('change', () => {
+        state.species[parseInt(sel.dataset.idx)] = sel.value;
+      });
+      row.appendChild(lbl);
+      row.appendChild(sel);
+      panel.appendChild(row);
+    }
+    // Add "custom" option note
+    const note = document.createElement('p');
+    note.className = 'soil-note';
+    note.style.marginTop = '8px';
+    note.textContent = 'Select up to 6 species. Diversity bonus: +3% per added species.';
+    panel.appendChild(note);
+  } else {
+    blendRow.style.display = 'none';
+    // Single species select
+    const row = document.createElement('div');
+    row.className = 'species-row';
+    const lbl = document.createElement('label');
+    lbl.textContent = 'Species';
+    const sel = document.createElement('select');
+    sel.className = 'species-select';
+    const blank = document.createElement('option');
+    blank.value = '';
+    blank.textContent = '— choose species —';
+    sel.appendChild(blank);
+    list.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.name + (s.nFix?' ✦':'');
+      sel.appendChild(opt);
+    });
+    if (list[0]) { sel.value = list[0].id; state.species = [list[0].id]; }
+    sel.addEventListener('change', () => {
+      state.species = sel.value ? [sel.value] : [];
+    });
+    row.appendChild(lbl);
+    row.appendChild(sel);
+    panel.appendChild(row);
+
+    const note = document.createElement('p');
+    note.className = 'soil-note';
+    note.style.marginTop = '8px';
+    note.textContent = ccType==='grass' ? 'Grasses: cereal rye, barley, oat · ✦ = nitrogen fixer'
+      : ccType==='legume' ? '✦ = nitrogen fixer · requires Rhizobium inoculant at planting'
+      : 'Brassicas release bio-fumigant compounds during decomposition';
+    panel.appendChild(note);
+  }
+}
+
+// Blend count buttons
+document.getElementById('blend-minus').addEventListener('click', () => {
+  if (state.blendCount > 2) { state.blendCount--; document.getElementById('blend-num').textContent = state.blendCount; renderSpeciesPanel(); }
+});
+document.getElementById('blend-plus').addEventListener('click', () => {
+  if (state.blendCount < 6) { state.blendCount++; document.getElementById('blend-num').textContent = state.blendCount; renderSpeciesPanel(); }
+});
+
+renderSpeciesPanel(); // initial render
+
+// ─── INSIGHTS GENERATOR ───────────────────────────────────────────────────────
+function generateInsights(speciesData, ccType) {
+  const bullets = [];
+  const tags = [];
+  const specs = [];
+
+  // Get selected species info
+  const speciesIds = state.species.filter(Boolean);
+  const speciesList = speciesIds.map(id => {
+    for (const cat of Object.values(SPECIES)) {
+      const found = cat.find(s=>s.id===id);
+      if (found) return found;
+    }
+    return null;
+  }).filter(Boolean);
+
+  const primarySp = speciesList[0];
+  if (!primarySp) return { bullets:[], tags:[], specs:[] };
+
+  // Tags
+  if (ccType === 'legume' || speciesList.some(s=>s.nFix)) tags.push({text:'N-fixer', cls:'green'});
+  if (speciesList.some(s=>s.deepRoot)) tags.push({text:'Deep root', cls:'blue'});
+  if (primarySp.season==='cool') tags.push({text:'Cool season', cls:'blue'});
+  else if (primarySp.season==='warm') tags.push({text:'Warm season', cls:'amber'});
+  else tags.push({text:'Mixed season', cls:'amber'});
+  if (speciesIds.length > 1) tags.push({text:`${speciesIds.length}-species blend`, cls:'green'});
+  if (primarySp.weedSuppress === 'excellent') tags.push({text:'Excellent weed suppression', cls:'green'});
+  if (primarySp.nScavenge === 'excellent' || primarySp.nScavenge === 'very good') tags.push({text:'Strong N scavenger', cls:'green'});
+
+  // Agronomic notes from NRCS data
+  if (primarySp) bullets.push(primarySp.notes);
+
+  // N credit insight
+  const hasNFixer = speciesList.some(s=>s.nFix);
+  if (hasNFixer) {
+    const fixerNames = speciesList.filter(s=>s.nFix).map(s=>s.name).join(' + ');
+    bullets.push(`N fixation by ${fixerNames} may allow some reduction in synthetic N on the following ${state.crop === 'corn' ? 'corn crop' : 'cash crop'} — the credit varies widely depending on termination timing, incorporation method, soil conditions, and growing season. Work with your local extension service to estimate what's appropriate for your system.`);
+  }
+
+  // Cash crop compatibility note
+  const cropWarnings = {
+    wheat: speciesIds.includes('annrye') ? 'Annual ryegrass preceding wheat carries some risk — documented allelopathic effects and herbicide resistance have been reported in certain regions. Consider your local herbicide program before using this combination.' : null,
+    soybean: speciesIds.includes('cerealrye') ? 'Cereal rye before soybean: some research suggests early termination (2–3 weeks before planting) may reduce allelopathic risk to soybean germination, though results vary by environment and biomass level.' : null,
+    corn: hasNFixer ? `Legumes preceding corn may support some reduction in N fertilizer inputs — how much depends on the species, termination date, and how well the residue mineralizes under your conditions. Local trials and soil testing are the best guide.` : null,
+  };
+  const warn = cropWarnings[state.crop];
+  if (warn) bullets.push(warn);
+
+  // Seeding/termination insight
+  if (speciesIds.includes('radish') || speciesIds.includes('turnip')) {
+    bullets.push('Brassica roots typically winterkill in northern zones, potentially leaving biopore channels that can improve infiltration — minimizing aggressive spring tillage may help preserve those benefits, though soil conditions vary.');
+  }
+  if (speciesIds.includes('sorghsudan')) {
+    bullets.push('Allowing adequate time between sorghum-sudangrass termination and cash crop planting is generally advisable. Prussic acid accumulation is possible under drought or cold stress — a consideration if livestock access is planned.');
+  }
+  if (ccType === 'mix' && speciesIds.length >= 3) {
+    bullets.push(`Multi-species blends with ${speciesIds.length} or more species may support greater microbial activity and aggregate stability than monocultures, due to complementary root architectures and varied residue chemistry — though outcomes depend on species selection and local conditions.`);
+  }
+
+  // C:N note
+  const cnVal = primarySp.cn;
+  if (cnVal && parseInt(cnVal) > 30) {
+    bullets.push(`High C:N ratio (${cnVal}): residue tends to decompose slowly, which can tie up available N temporarily. Earlier termination or modest N supplementation in the following season may be worth considering, particularly for N-sensitive cash crops.`);
+  } else if (cnVal && parseInt(cnVal) < 20) {
+    bullets.push(`Low C:N ratio (${cnVal}): residue breaks down relatively quickly, which may support faster N release — a potential fit for cash crops with early-season N demand, such as corn or vegetables.`);
+  }
+
+  // Specs for display
+  if (primarySp.protein) specs.push({ label:'Crude protein', val: primarySp.protein });
+  if (primarySp.cn) specs.push({ label:'C:N ratio', val: primarySp.cn });
+  specs.push({ label:'N scavenging', val: primarySp.nScavenge });
+  specs.push({ label:'Weed suppression', val: primarySp.weedSuppress });
+  specs.push({ label:'Water use', val: primarySp.water });
+  if (primarySp.nFix) specs.push({ label:'N fixation', val: 'Yes (inoculate)' });
+
+  return { bullets: bullets.filter(Boolean).slice(0,5), tags, specs };
+}
+
+// ─── CALCULATE ────────────────────────────────────────────────────────────────
+document.getElementById('calc-btn').addEventListener('click', () => {
+  const speciesIds = state.species.filter(Boolean);
+  const baseVals = DATA[state.climate][state.texture][state.crop][state.cc];
+  const params = PARAMS.filter(p=>selectedParams.has(p.id));
+
+  // Compute species-adjusted values
+  let adjVals;
+  if (state.cc === 'mix' && speciesIds.length > 1) {
+    // average of individual species mods + diversity bonus
+    const blendMod = blendMods(speciesIds);
+    adjVals = blendMod ? applyMod(baseVals, null, blendMod) : baseVals;
+  } else if (speciesIds.length === 1) {
+    adjVals = applyMod(baseVals, speciesIds[0]);
+  } else {
+    adjVals = baseVals;
+  }
+
+  // Helper for blend mode
+  function applyMod(bv, spId, customMod) {
+    const mod = customMod || SPECIES_MODS[spId];
+    if (!mod) return bv;
+    const out = {...bv};
+    const map = {n:'n',weeds:'weeds',soc:'soc',bd:'bd',mbc:'mbc',mbn:'mbn',erosion:'erosion',infil:'infil',yield:'yield'};
+    Object.entries(map).forEach(([mk,pk]) => {
+      if (mod[mk]!==undefined) out[pk] = +(bv[pk]*mod[mk]).toFixed(1);
+    });
+    if (mod.infil) out.ks = +(bv.ks*(0.7+mod.infil*0.3)).toFixed(1);
+    if (mod.erosion) out.agg = +(bv.agg*(0.7+mod.erosion*0.3)).toFixed(1);
+    if (mod.agg) out.agg = +(out.agg*mod.agg).toFixed(1);
+    return out;
+  }
+
+  document.getElementById('empty-state').style.display = 'none';
+  const wrap = document.getElementById('result-cards-wrap');
+  wrap.style.display = 'block';
+
+  // Species label
+  const speciesList = speciesIds.map(id => {
+    for (const cat of Object.values(SPECIES)) { const f=cat.find(s=>s.id===id); if(f) return f.name; } return id;
+  });
+  const spLabel = speciesList.length ? speciesList.join(' + ') : state.cc;
+  document.getElementById('results-tag').textContent = spLabel;
+
+  // INSIGHTS
+  const { bullets, tags, specs } = generateInsights(adjVals, state.cc);
+  const insightsPanel = document.getElementById('insights-panel');
+  const tagHtml = tags.map(t=>`<span class="itag itag-${t.cls}">${t.text}</span>`).join('');
+  const bulletHtml = bullets.map(b=>`<li>${b}</li>`).join('');
+  const specHtml = specs.map(s=>`<div class="spec-item"><div class="spec-label">${s.label}</div><div class="spec-val">${s.val}</div></div>`).join('');
+  insightsPanel.innerHTML = `
+    <div class="insights-header">
+      <div class="insights-icon"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5"/><path d="M6 4v3M6 8.5h.01"/></svg></div>
+      <div class="insights-title">Species insights · sourced from NRCS Cover Crop Chart &amp; SARE</div>
+    </div>
+    <div class="insight-tags">${tagHtml}</div>
+    <ul class="insight-bullets">${bulletHtml}</ul>
+    ${specHtml ? `<div class="insight-spec">${specHtml}</div>` : ''}
+  `;
+
+  // RESULT CARDS
+  const list = document.getElementById('result-list');
+  list.innerHTML = '';
+  params.forEach(p => {
+    const val = adjVals[p.id];
+    const isPositiveGood = p.dir==='+';
+    const isGood = isPositiveGood ? val>0 : val<0;
+    const valClass = isGood ? 'positive' : val===0 ? 'neutral' : 'negative';
+    const sign = val>0 ? '+' : '';
+    const MAX = 25;
+    const beneficialVal = isPositiveGood ? val : -val;
+    const clamped = Math.max(-MAX, Math.min(MAX, beneficialVal));
+    const markerPct = ((clamped+MAX)/(2*MAX))*100;
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.innerHTML = `
+      <div>
+        <div class="result-name">${p.name}</div>
+        <div class="result-desc">${p.hint}. ${p.dir==='+' ? 'Higher values are beneficial.' : 'Lower values are beneficial.'}</div>
+        <div class="scale-wrap">
+          <div class="scale-track"><div class="scale-marker" style="left:${markerPct.toFixed(1)}%"></div></div>
+          <div class="scale-labels"><span>Worst</span><span>Neutral</span><span>Best</span></div>
+        </div>
+      </div>
+      <div class="result-right"><div class="result-value ${valClass}">${sign}${val}%</div></div>
+    `;
+    list.appendChild(card);
+  });
+
+  wrap.scrollIntoView({ behavior:'smooth', block:'nearest' });
+
+  // Store results for export
+  window._lastResults = { params, adjVals, spLabel, speciesList, state: {...state} };
+
+  // Update print config block
+  const cfgBlock = document.getElementById('print-config');
+  const climateNames = {A:'Tropical (A)',B:'Arid (B)',C:'Temperate (C)',D:'Continental (D)'};
+  const textureNames = {coarse:'Coarse',medium:'Medium',fine:'Fine'};
+  const cropNames = {corn:'Corn',soybean:'Soybean',wheat:'Wheat',veg:'Vegetables',cornsoy:'Corn–Soy rotation',cornsoywheat:'Corn–Soy–Wheat rotation',other:'Other'};
+  cfgBlock.innerHTML = `
+    <div style="margin-bottom:1rem;padding:.75rem 1rem;background:#F5F3EE;border:1px solid #D9D5CC;border-radius:4px;font-size:.8rem;line-height:1.7;">
+      <strong style="display:block;margin-bottom:.25rem;">Configuration</strong>
+      Climate: ${climateNames[state.climate]} &nbsp;·&nbsp;
+      Soil texture: ${textureNames[state.texture]} &nbsp;·&nbsp;
+      Cash crop: ${cropNames[state.crop]} &nbsp;·&nbsp;
+      Cover crop: ${spLabel}
+    </div>`;
+});
+
+// ─── CSV EXPORT ───────────────────────────────────────────────────────────────
+document.getElementById('btn-csv').addEventListener('click', () => {
+  const r = window._lastResults;
+  if (!r) return;
+  const climateNames = {A:'Tropical (A)',B:'Arid (B)',C:'Temperate (C)',D:'Continental (D)'};
+  const textureNames = {coarse:'Coarse',medium:'Medium',fine:'Fine'};
+  const cropNames = {corn:'Corn',soybean:'Soybean',wheat:'Wheat',veg:'Vegetables',cornsoy:'Corn-Soy Rotation',cornsoywheat:'Corn-Soy-Wheat Rotation',other:'Other'};
+
+  const lines = [];
+  lines.push('Soil & Climate Initiative – Cover Crop Calculator Results');
+  lines.push(`Generated,${new Date().toLocaleDateString()}`);
+  lines.push('');
+  lines.push('Configuration');
+  lines.push(`Climate,${climateNames[r.state.climate]}`);
+  lines.push(`Soil Texture,${textureNames[r.state.texture]}`);
+  lines.push(`Cash Crop,${cropNames[r.state.crop]}`);
+  lines.push(`Cover Crop,${r.spLabel}`);
+  lines.push('');
+
+  // Species insights section
+  const insightEl = document.getElementById('insights-panel');
+
+  // Tags
+  const tagEls = insightEl.querySelectorAll('.itag');
+  if (tagEls.length) {
+    lines.push('Species Traits');
+    lines.push(Array.from(tagEls).map(t => `"${t.textContent.trim()}"`).join(','));
+    lines.push('');
+  }
+
+  // Spec grid (crude protein, C:N ratio, N scavenging, weed suppression, water use)
+  const specItems = insightEl.querySelectorAll('.spec-item');
+  if (specItems.length) {
+    lines.push('Species Data');
+    const headers = Array.from(specItems).map(si => `"${si.querySelector('.spec-label')?.textContent.trim() || ''}"`).join(',');
+    const vals = Array.from(specItems).map(si => `"${si.querySelector('.spec-val')?.textContent.trim() || ''}"`).join(',');
+    lines.push(headers);
+    lines.push(vals);
+    lines.push('');
+  }
+
+  // Insight bullets
+  const bulletEls = insightEl.querySelectorAll('.insight-bullets li');
+  if (bulletEls.length) {
+    lines.push('Agronomic Insights');
+    Array.from(bulletEls).forEach((li, i) => {
+      lines.push(`"${i + 1}","${li.textContent.trim().replace(/"/g, '""')}"`);
+    });
+    lines.push('');
+  }
+
+  lines.push('Parameter,Change (%),Direction,Beneficial Direction,Assessment');
+
+  r.params.forEach(p => {
+    const val = r.adjVals[p.id];
+    const isPositiveGood = p.dir === '+';
+    const isGood = isPositiveGood ? val > 0 : val < 0;
+    const sign = val > 0 ? '+' : '';
+    const assessment = isGood ? 'Beneficial' : val === 0 ? 'Neutral' : 'Unfavorable';
+    const direction = val > 0 ? 'Increase' : val < 0 ? 'Decrease' : 'No change';
+    const beneficialDir = p.dir === '+' ? 'Increase' : 'Decrease';
+    lines.push(`"${p.name}",${sign}${val}%,${direction},${beneficialDir},${assessment}`);
+  });
+
+  lines.push('');
+  lines.push('"Note: Estimates are averages from 500+ published field studies (Jian et al. 2020 Soil & Tillage Research 199:104575)."');
+  lines.push('"Species data: NRCS Cover Crop Chart V4.0 (2023). Management guidance: SARE Managing Cover Crops Profitably 3rd Ed."');
+  lines.push('"Actual results vary by local conditions. Not a substitute for local soil testing and extension advice."');
+
+  const csv = lines.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `SCI_CoverCrop_Results_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+// ─── PDF EXPORT (styled print) ────────────────────────────────────────────────
+document.getElementById('btn-pdf').addEventListener('click', () => {
+  const r = window._lastResults;
+  if (!r) return;
+
+  const climateNames = {A:'Tropical (A)',B:'Arid (B)',C:'Temperate (C)',D:'Continental (D)'};
+  const textureNames = {coarse:'Coarse',medium:'Medium',fine:'Fine'};
+  const cropNames = {corn:'Corn',soybean:'Soybean',wheat:'Wheat',veg:'Vegetables',cornsoy:'Corn–Soy Rotation',cornsoywheat:'Corn–Soy–Wheat Rotation',other:'Other'};
+
+  const rows = r.params.map(p => {
+    const val = r.adjVals[p.id];
+    const isPositiveGood = p.dir === '+';
+    const isGood = isPositiveGood ? val > 0 : val < 0;
+    const sign = val > 0 ? '+' : '';
+    const color = isGood ? '#2A5C27' : val === 0 ? '#6B6860' : '#B53030';
+    const bgColor = isGood ? '#EBF2EA' : val === 0 ? '#F5F3EE' : '#F8EAEA';
+    const assessment = isGood ? '✓ Beneficial' : val === 0 ? '— Neutral' : '✗ Unfavorable';
+    const markerPct = ((Math.max(-25, Math.min(25, isPositiveGood ? val : -val)) + 25) / 50) * 100;
+    const gradient = `linear-gradient(to right,#EF5350,#EF9A9A,#FFCDD2,#fff,#C8E6C9,#81C784,#4CAF50)`;
+    return `
+      <tr>
+        <td style="padding:10px 12px;border-bottom:1px solid #EAE6DC;vertical-align:top;">
+          <strong style="font-size:11pt;color:#111110;">${p.name}</strong><br>
+          <span style="font-size:9pt;color:#6B6860;">${p.hint}</span>
+          <div style="margin-top:6px;position:relative;height:8px;border-radius:4px;background:${gradient};border:1px solid #D9D5CC;">
+            <div style="position:absolute;top:50%;left:${markerPct.toFixed(1)}%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid #111110;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:7.5pt;color:#888;margin-top:2px;"><span>Worst</span><span>Neutral</span><span>Best</span></div>
+        </td>
+        <td style="padding:10px 12px;border-bottom:1px solid #EAE6DC;text-align:right;white-space:nowrap;vertical-align:middle;">
+          <span style="font-size:20pt;font-family:Georgia,serif;color:${color};font-weight:400;">${sign}${val}%</span><br>
+          <span style="font-size:8pt;font-weight:600;color:${color};background:${bgColor};padding:2px 8px;border-radius:2px;">${assessment}</span>
+        </td>
+      </tr>`;
+  }).join('');
+
+  // Gather insight bullets
+  const insightEl = document.getElementById('insights-panel');
+  const bulletEls = insightEl.querySelectorAll('.insight-bullets li');
+  const bulletHtml = bulletEls.length ? `
+    <div style="margin-bottom:1.5rem;padding:1rem 1.25rem;border-left:3px solid #3D6B3A;background:#EBF2EA;">
+      <div style="font-size:9pt;font-weight:700;color:#111110;margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.06em;">Species Insights</div>
+      ${Array.from(bulletEls).map(li => `<div style="font-size:9.5pt;color:#282724;padding:.2rem 0 .2rem 1rem;position:relative;border-bottom:1px solid #D9D5CC;">
+        <span style="position:absolute;left:0;color:#3D6B3A;">→</span>${li.textContent}</div>`).join('')}
+    </div>` : '';
+
+  // Spec grid
+  const specItems = insightEl.querySelectorAll('.spec-item');
+  const specHtml = specItems.length ? `
+    <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:1.5rem;padding:.75rem 1rem;background:#F5F3EE;border:1px solid #D9D5CC;">
+      ${Array.from(specItems).map(si => {
+        const lbl = si.querySelector('.spec-label')?.textContent || '';
+        const val = si.querySelector('.spec-val')?.textContent || '';
+        return `<div><div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B6860;">${lbl}</div><div style="font-size:9.5pt;font-weight:600;color:#111110;">${val}</div></div>`;
+      }).join('')}
+    </div>` : '';
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Cover Crop Results — Soil & Climate Initiative</title>
+<style>
+  @page { margin:1.5cm 2cm; size:A4; }
+  body { font-family:'Helvetica Neue',Arial,sans-serif; color:#111110; margin:0; padding:0; font-size:10pt; line-height:1.5; }
+  table { width:100%; border-collapse:collapse; }
+</style>
+</head>
+<body>
+  <!-- HEADER -->
+  <div style="background:#111110;padding:1.5rem 2rem;margin-bottom:1.5rem;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:.75rem;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 21C12 21 4 15.5 4 9.5C4 6.46 6.69 4 10 4C10.74 4 11.44 4.13 12 4.37C12.56 4.13 13.26 4 14 4C17.31 4 20 6.46 20 9.5C20 15.5 12 21 12 21Z" fill="#5A8F56"/><path d="M12 21V10" stroke="#3D6B3A" stroke-width="1" stroke-linecap="round"/></svg>
+      <span style="font-size:11pt;font-weight:700;color:#fff;letter-spacing:.02em;">Soil &amp; Climate Initiative</span>
+    </div>
+    <div style="font-size:7.5pt;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#5A8F56;margin-bottom:.3rem;">Cover Crop Calculator</div>
+    <div style="font-size:18pt;font-family:Georgia,serif;font-weight:400;color:#fff;margin-bottom:.3rem;">Estimated Soil Health Changes</div>
+    <div style="font-size:8.5pt;color:rgba(255,255,255,.5);">Generated ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</div>
+  </div>
+
+  <!-- CONFIG TABLE -->
+  <table style="margin-bottom:1.5rem;background:#F5F3EE;border:1px solid #D9D5CC;">
+    <thead><tr style="background:#EAE6DC;">
+      <th style="padding:8px 12px;text-align:left;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B6860;">Climate</th>
+      <th style="padding:8px 12px;text-align:left;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B6860;">Soil Texture</th>
+      <th style="padding:8px 12px;text-align:left;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B6860;">Cash Crop</th>
+      <th style="padding:8px 12px;text-align:left;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B6860;">Cover Crop</th>
+    </tr></thead>
+    <tbody><tr>
+      <td style="padding:10px 12px;font-size:10pt;font-weight:600;">${climateNames[r.state.climate]}</td>
+      <td style="padding:10px 12px;font-size:10pt;font-weight:600;">${textureNames[r.state.texture]}</td>
+      <td style="padding:10px 12px;font-size:10pt;font-weight:600;">${cropNames[r.state.crop]}</td>
+      <td style="padding:10px 12px;font-size:10pt;font-weight:600;">${r.spLabel}</td>
+    </tr></tbody>
+  </table>
+
+  ${specHtml}
+  ${bulletHtml}
+
+  <!-- RESULTS TABLE -->
+  <table>
+    <thead><tr style="background:#111110;">
+      <th style="padding:10px 12px;text-align:left;font-size:8.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#fff;width:70%;">Parameter</th>
+      <th style="padding:10px 12px;text-align:right;font-size:8.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#fff;width:30%;">Estimated Change</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+
+  <!-- FOOTER NOTE -->
+  <div style="margin-top:1.5rem;padding:.75rem 1rem;background:#F5F3EE;border-left:3px solid #8C6022;font-size:8pt;color:#6B6860;line-height:1.6;">
+    <strong style="color:#4A3010;">Note:</strong> Estimates are ensemble averages from 269–281 published field studies (Jian et al., 2020, <em>Soil &amp; Tillage Research</em> 199:104575). Species data from NRCS Cover Crop Chart V4.0 (USDA-ARS, 2023). Management guidance from SARE <em>Managing Cover Crops Profitably</em>, 3rd Ed. Results are directional guidance — actual field outcomes vary by local soil conditions, management history, and years since adoption. Not a substitute for local soil testing and professional extension advice.
+  </div>
+
+  <div style="margin-top:1rem;text-align:center;font-size:7.5pt;color:#aaa;">
+    soilclimateinitiative.org · 1612 K Street NW, Suite 1000, Washington, DC 20006
+  </div>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  win.onload = () => { win.focus(); win.print(); };
+});
+</script>
+
+<footer class="sci-footer">
+  <div class="sci-footer-inner">
+    <div class="sci-footer-brand">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 21C12 21 4 15.5 4 9.5C4 6.46 6.69 4 10 4C10.74 4 11.44 4.13 12 4.37C12.56 4.13 13.26 4 14 4C17.31 4 20 6.46 20 9.5C20 15.5 12 21 12 21Z" fill="#5A8F56"/><path d="M12 21V10" stroke="#3D6B3A" stroke-width="1" stroke-linecap="round"/></svg>
+      <div class="sci-footer-text">
+        <strong style="color:rgba(255,255,255,.45);font-weight:600;">Soil &amp; Climate Initiative</strong><br>
+        A tool provided for farmers and agronomists in the SCI network.<br>
+        <a href="https://www.soilclimateinitiative.org" target="_blank">soilclimateinitiative.org</a> · 1612 K Street NW, Suite 1000, Washington, DC 20006
+      </div>
+    </div>
+    <div class="sci-footer-links">
+      <a href="https://www.soilclimateinitiative.org/farmers" target="_blank">Farmers &amp; Ranchers</a>
+      <a href="https://www.soilclimateinitiative.org/about" target="_blank">About SCI</a>
+      <a href="https://www.soilclimateinitiative.org/contact" target="_blank">Get in touch</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
