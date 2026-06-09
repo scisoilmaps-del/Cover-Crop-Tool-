@@ -98,6 +98,40 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
 .param-hint { font-size:.72rem; color:var(--sci-mid); line-height:1.4; margin-top:2px; }
 .direction-note { margin:.65rem 0 .9rem; padding:.75rem .9rem; background:var(--sci-blue-bg); border-left:3px solid var(--sci-blue); border-radius:0 4px 4px 0; font-size:.78rem; color:var(--sci-blue); line-height:1.55; }
 .direction-note strong { color:#123A62; }
+
+/* PRACTICE SCALE / ACRE INPUT */
+.scale-metric-card { border-left:3px solid var(--sci-leaf); }
+.scale-input-wrap { display:grid; grid-template-columns:minmax(180px,260px) 1fr; gap:1rem; align-items:start; margin-top:.85rem; }
+@media(max-width:650px){ .scale-input-wrap { grid-template-columns:1fr; } }
+.scale-field label { display:block; font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--sci-mid); margin-bottom:.35rem; }
+.scale-field input { width:100%; padding:11px 12px; border:1.5px solid var(--sci-border); border-radius:3px; font-family:'Inter',sans-serif; font-size:.9rem; color:var(--sci-black); background:#fff; }
+.scale-field input:focus { outline:none; border-color:var(--sci-leaf); box-shadow:0 0 0 3px rgba(61,107,58,.12); }
+.other-crop-field { display:none; margin-top:.9rem; padding:.85rem .95rem; background:var(--sci-offwhite); border:1px solid var(--sci-border); border-radius:3px; }
+.other-crop-field.open { display:block; }
+.other-crop-field label { display:block; font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--sci-mid); margin-bottom:.35rem; }
+.other-crop-field input { width:100%; padding:10px 12px; border:1.5px solid var(--sci-border); border-radius:3px; font-family:'Inter',sans-serif; font-size:.9rem; color:var(--sci-black); background:#fff; }
+.other-crop-field input:focus { outline:none; border-color:var(--sci-leaf); box-shadow:0 0 0 3px rgba(61,107,58,.12); }
+.other-crop-field .soil-note { margin-top:.55rem; }
+.scale-help { font-size:.78rem; color:var(--sci-mid); line-height:1.55; padding:.75rem .9rem; background:var(--sci-offwhite); border:1px solid var(--sci-border); border-radius:3px; }
+.scale-help strong { color:var(--sci-black); }
+
+/* FARM INFO / LOGGING INPUTS */
+.farm-info-card { border-left:3px solid var(--sci-amber); margin-bottom:1rem; }
+.farm-info-grid { display:grid; grid-template-columns:repeat(4,minmax(130px,1fr)); gap:.9rem; margin-top:.85rem; }
+@media(max-width:760px){ .farm-info-grid { grid-template-columns:1fr 1fr; } }
+@media(max-width:480px){ .farm-info-grid { grid-template-columns:1fr; } }
+.farm-field label { display:block; font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--sci-mid); margin-bottom:.35rem; }
+.farm-field input { width:100%; padding:11px 12px; border:1.5px solid var(--sci-border); border-radius:3px; font-family:'Inter',sans-serif; font-size:.9rem; color:var(--sci-black); background:#fff; }
+.farm-field input:focus { outline:none; border-color:var(--sci-leaf); box-shadow:0 0 0 3px rgba(61,107,58,.12); }
+.farm-info-note { margin-top:.75rem; font-size:.76rem; color:var(--sci-mid); line-height:1.5; }
+.farm-summary { display:flex; flex-wrap:wrap; align-items:center; gap:.6rem .9rem; padding:.9rem 1rem; margin-bottom:1rem; background:var(--sci-amber-bg); border:1px solid var(--sci-border); border-left:3px solid var(--sci-amber); border-radius:0 4px 4px 0; }
+.farm-summary-label { font-size:.68rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--sci-amber); }
+.farm-summary-value { font-size:.86rem; font-weight:700; color:var(--sci-black); }
+.farm-summary-note { flex-basis:100%; font-size:.76rem; color:var(--sci-mid); line-height:1.45; }
+.scale-summary { display:flex; flex-wrap:wrap; align-items:center; gap:.7rem; padding:.9rem 1rem; margin-bottom:1rem; background:var(--sci-offwhite); border:1px solid var(--sci-border); border-left:3px solid var(--sci-leaf); border-radius:0 4px 4px 0; }
+.scale-summary-label { font-size:.68rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--sci-mid); }
+.scale-summary-value { font-size:.95rem; font-weight:700; color:var(--sci-black); }
+.scale-summary-note { flex-basis:100%; font-size:.76rem; color:var(--sci-mid); line-height:1.45; }
 .result-value-label { font-size:.64rem; color:var(--sci-mid); text-transform:uppercase; letter-spacing:.08em; font-weight:600; }
 
 /* CALC BUTTON */
@@ -121,7 +155,7 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
 @media print {
   * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .sci-topbar, .calc-row, .param-actions, #empty-state, .export-btns,
-  .sources-section, .sci-footer, .step-grid, #param-grid,
+  .sources-section, .sci-footer, .step-grid, .farm-info-card, #param-grid,
   .blend-count, .species-panel { display:none !important; }
   body { background:#fff; font-size:11pt; }
   .main { padding:.5rem 0; max-width:100%; }
@@ -319,6 +353,27 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
 
 <main class="main">
 
+
+  <div class="card card-full farm-info-card">
+    <div class="card-label">Farm info</div>
+    <h3>Logging information</h3>
+    <div class="farm-info-grid">
+      <div class="farm-field">
+        <label for="farm-name">Farm name</label>
+        <input id="farm-name" type="text" placeholder="Example: Smith Family Farm" autocomplete="organization">
+      </div>
+      <div class="farm-field">
+        <label for="total-fields">Total fields</label>
+        <input id="total-fields" type="number" min="0" step="1" inputmode="numeric" placeholder="Example: 8">
+      </div>
+      <div class="farm-field">
+        <label for="total-acres">Total acres</label>
+        <input id="total-acres" type="number" min="0" step="0.1" inputmode="decimal" placeholder="Example: 640">
+      </div>
+    </div>
+    <p class="farm-info-note">Farm info is for logging only. It does not change the average directional percentage estimates.</p>
+  </div>
+
   <div class="step-grid">
     <div class="card">
       <div class="card-label">Step 1</div>
@@ -389,6 +444,11 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
         <label class="chip" data-group="crop" data-val="cornsoywheat"><span class="dot"></span>Corn–Soy–Wheat rotation</label>
         <label class="chip" data-group="crop" data-val="other"><span class="dot"></span>Other</label>
       </div>
+      <div class="other-crop-field" id="other-crop-field">
+        <label for="other-crop-name">Other crop name</label>
+        <input id="other-crop-name" type="text" placeholder="Example: cotton, rice, alfalfa, orchard crop" autocomplete="off">
+        <p class="soil-note">Used for logging only. The calculator still uses the general “Other” crop response curve.</p>
+      </div>
     </div>
 
     <div class="card">
@@ -414,6 +474,21 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
     </div>
   </div>
 
+
+  <div class="card card-full scale-metric-card" style="margin-bottom:1rem;">
+    <div class="card-label">Optional scale metric</div>
+    <h3>Practice area</h3>
+    <div class="scale-input-wrap">
+      <div class="scale-field">
+        <label for="acres-treated">Acres treated</label>
+        <input id="acres-treated" type="number" min="0" step="0.1" inputmode="decimal" placeholder="Example: 125">
+      </div>
+      <div class="scale-help">
+        <strong>Acres define the practice scale only.</strong> They do not change, multiply, or convert the average change percentages. Use this field to document how many acres the selected cover crop practice applies to while keeping the results directional, not quantitative.
+      </div>
+    </div>
+  </div>
+
   <div class="card card-full" style="margin-bottom:1rem;">
     <div class="card-label">Step 5</div>
     <h3>Select average change percentage parameters to estimate</h3>
@@ -430,7 +505,7 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
       <svg viewBox="0 0 16 16"><polyline points="2,8 6,12 14,4"/></svg>
       Calculate results
     </button>
-    <span class="calc-hint">Results show average change percentages from published field studies; use them as directional planning guidance.</span>
+    <span class="calc-hint">Results show average change percentages from published field studies; acres are scale context only.</span>
   </div>
 
   <div id="results">
@@ -453,6 +528,17 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
             PDF
           </button>
         </div>
+      </div>
+
+      <div class="farm-summary" id="farm-summary" style="display:none;">
+        <span class="farm-summary-label">Farm info</span>
+        <span class="farm-summary-value" id="farm-summary-value">Farm info not entered</span>
+        <span class="farm-summary-note">Farm info is included for recordkeeping and export only. It does not affect the model results.</span>
+      </div>
+      <div class="scale-summary" id="scale-summary" style="display:none;">
+        <span class="scale-summary-label">Practice scale</span>
+        <span class="scale-summary-value" id="scale-summary-value">Acres not entered</span>
+        <span class="scale-summary-note">Acres provide context for the area treated. They are not used to calculate tons, pounds, bushels, ppm, or any other field-level quantity.</span>
       </div>
       <div class="insights-panel" id="insights-panel"></div>
       <!-- print-only config summary -->
@@ -677,7 +763,7 @@ function blendMods(speciesIds) {
 }
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
-const state = { climate:'C', texture:'medium', crop:'corn', cc:'grass', species:[], blendCount:2 };
+const state = { climate:'C', texture:'medium', crop:'corn', cropOther:'', cc:'grass', species:[], blendCount:2 };
 const selectedParams = new Set(PARAMS.map(p=>p.id));
 
 // ─── BUILD PARAM GRID ─────────────────────────────────────────────────────────
@@ -710,10 +796,41 @@ document.querySelectorAll('.chip').forEach(chip => {
     chip.classList.add('active');
     if (group==='climate') state.climate = chip.dataset.val;
     else if (group==='texture') state.texture = chip.dataset.val;
-    else if (group==='crop') state.crop = chip.dataset.val;
+    else if (group==='crop') { state.crop = chip.dataset.val; updateOtherCropField(); }
     else if (group==='cc') { state.cc = chip.dataset.val; renderSpeciesPanel(); }
   });
 });
+
+// ─── OTHER CASH CROP LOGGING ─────────────────────────────────────────────────
+function escapeHtml(str) {
+  return String(str || '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+}
+function csvSafe(value) {
+  const v = String(value ?? '');
+  return /[\"\n\r,]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+}
+function getOtherCropName() {
+  const el = document.getElementById('other-crop-name');
+  return el ? el.value.trim() : '';
+}
+function getCropDisplayName(cropKey, otherName) {
+  const cropNames = {corn:'Corn',soybean:'Soybean',wheat:'Wheat',veg:'Vegetables',cornsoy:'Corn–Soy rotation',cornsoywheat:'Corn–Soy–Wheat rotation',other:'Other'};
+  if (cropKey === 'other') return otherName ? `Other — ${otherName}` : 'Other (not specified)';
+  return cropNames[cropKey] || cropKey;
+}
+function updateOtherCropField() {
+  const wrap = document.getElementById('other-crop-field');
+  const input = document.getElementById('other-crop-name');
+  if (!wrap || !input) return;
+  const isOther = state.crop === 'other';
+  wrap.classList.toggle('open', isOther);
+  if (isOther) setTimeout(() => input.focus(), 0);
+  else state.cropOther = '';
+}
+const otherCropInput = document.getElementById('other-crop-name');
+if (otherCropInput) {
+  otherCropInput.addEventListener('input', () => { state.cropOther = otherCropInput.value.trim(); });
+}
 
 // ─── SPECIES PANEL ────────────────────────────────────────────────────────────
 function renderSpeciesPanel() {
@@ -890,8 +1007,42 @@ function generateInsights(speciesData, ccType) {
   return { bullets: bullets.filter(Boolean).slice(0,5), tags, specs };
 }
 
+// ─── PRACTICE SCALE / ACRES ──────────────────────────────────────────────────
+function getAcresTreated() {
+  const el = document.getElementById('acres-treated');
+  if (!el) return null;
+  const n = parseFloat(el.value);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+function formatAcres(acres) {
+  return acres ? `${acres.toLocaleString(undefined, {maximumFractionDigits:1})} acres treated` : 'Acres not entered';
+}
+
+
+// ─── FARM INFO / LOGGING ─────────────────────────────────────────────────────
+function getFarmInfo() {
+  const name = document.getElementById('farm-name')?.value.trim() || '';
+  const totalFieldsRaw = document.getElementById('total-fields')?.value || '';
+  const totalAcresRaw = document.getElementById('total-acres')?.value || '';
+  const totalFields = totalFieldsRaw === '' ? null : parseInt(totalFieldsRaw, 10);
+  const totalAcres = totalAcresRaw === '' ? null : parseFloat(totalAcresRaw);
+  return {
+    farmName: name,
+    totalFields: Number.isFinite(totalFields) && totalFields >= 0 ? totalFields : null,
+    totalAcres: Number.isFinite(totalAcres) && totalAcres >= 0 ? totalAcres : null
+  };
+}
+function formatFarmInfo(info, html=false) {
+  const parts = [];
+  if (info?.farmName) parts.push(html ? `Farm: ${escapeHtml(info.farmName)}` : `Farm: ${info.farmName}`);
+  if (info?.totalFields !== null && info?.totalFields !== undefined) parts.push(`${info.totalFields.toLocaleString()} fields`);
+  if (info?.totalAcres !== null && info?.totalAcres !== undefined) parts.push(`${info.totalAcres.toLocaleString(undefined, {maximumFractionDigits:1})} total acres`);
+  return parts.length ? parts.join(' · ') : 'Farm info not entered';
+}
+
 // ─── CALCULATE ────────────────────────────────────────────────────────────────
 document.getElementById('calc-btn').addEventListener('click', () => {
+  state.cropOther = getOtherCropName();
   const speciesIds = state.species.filter(Boolean);
   const baseVals = DATA[state.climate][state.texture][state.crop][state.cc];
   const params = PARAMS.filter(p=>selectedParams.has(p.id));
@@ -933,6 +1084,21 @@ document.getElementById('calc-btn').addEventListener('click', () => {
   });
   const spLabel = speciesList.length ? speciesList.join(' + ') : state.cc;
   document.getElementById('results-tag').textContent = spLabel;
+
+  const acres = getAcresTreated();
+  const farmInfo = getFarmInfo();
+  const farmSummary = document.getElementById('farm-summary');
+  const farmSummaryValue = document.getElementById('farm-summary-value');
+  if (farmSummary && farmSummaryValue) {
+    farmSummary.style.display = 'flex';
+    farmSummaryValue.textContent = formatFarmInfo(farmInfo);
+  }
+  const scaleSummary = document.getElementById('scale-summary');
+  const scaleSummaryValue = document.getElementById('scale-summary-value');
+  if (scaleSummary && scaleSummaryValue) {
+    scaleSummary.style.display = 'flex';
+    scaleSummaryValue.textContent = formatAcres(acres);
+  }
 
   // INSIGHTS
   const { bullets, tags, specs } = generateInsights(adjVals, state.cc);
@@ -982,20 +1148,22 @@ document.getElementById('calc-btn').addEventListener('click', () => {
   wrap.scrollIntoView({ behavior:'smooth', block:'nearest' });
 
   // Store results for export
-  window._lastResults = { params, adjVals, spLabel, speciesList, state: {...state} };
+  window._lastResults = { params, adjVals, spLabel, speciesList, acres, farmInfo, state: {...state} };
 
   // Update print config block
   const cfgBlock = document.getElementById('print-config');
   const climateNames = {A:'Tropical (A)',B:'Arid (B)',C:'Temperate (C)',D:'Continental (D)'};
   const textureNames = {coarse:'Coarse',medium:'Medium',fine:'Fine'};
-  const cropNames = {corn:'Corn',soybean:'Soybean',wheat:'Wheat',veg:'Vegetables',cornsoy:'Corn–Soy rotation',cornsoywheat:'Corn–Soy–Wheat rotation',other:'Other'};
+  const cropDisplay = escapeHtml(getCropDisplayName(state.crop, state.cropOther));
   cfgBlock.innerHTML = `
     <div style="margin-bottom:1rem;padding:.75rem 1rem;background:#F5F3EE;border:1px solid #D9D5CC;border-radius:4px;font-size:.8rem;line-height:1.7;">
       <strong style="display:block;margin-bottom:.25rem;">Configuration</strong>
+      Farm info: ${formatFarmInfo(farmInfo, true)}<br>
       Climate: ${climateNames[state.climate]} &nbsp;·&nbsp;
       Soil texture: ${textureNames[state.texture]} &nbsp;·&nbsp;
-      Cash crop: ${cropNames[state.crop]} &nbsp;·&nbsp;
-      Cover crop: ${spLabel}
+      Cash crop: ${cropDisplay} &nbsp;·&nbsp;
+      Cover crop: ${spLabel} &nbsp;·&nbsp;
+      Practice scale: ${formatAcres(acres)}
     </div>`;
 });
 
@@ -1005,17 +1173,23 @@ document.getElementById('btn-csv').addEventListener('click', () => {
   if (!r) return;
   const climateNames = {A:'Tropical (A)',B:'Arid (B)',C:'Temperate (C)',D:'Continental (D)'};
   const textureNames = {coarse:'Coarse',medium:'Medium',fine:'Fine'};
-  const cropNames = {corn:'Corn',soybean:'Soybean',wheat:'Wheat',veg:'Vegetables',cornsoy:'Corn-Soy Rotation',cornsoywheat:'Corn-Soy-Wheat Rotation',other:'Other'};
+  const cropDisplay = getCropDisplayName(r.state.crop, r.state.cropOther);
 
   const lines = [];
   lines.push('Soil & Climate Initiative – Cover Crop Calculator Results');
   lines.push(`Generated,${new Date().toLocaleDateString()}`);
   lines.push('');
+  lines.push('Farm Info');
+  lines.push(`Farm Name,${csvSafe(r.farmInfo?.farmName || '')}`);
+  lines.push(`Total Fields,${r.farmInfo?.totalFields ?? ''}`);
+  lines.push(`Total Acres,${r.farmInfo?.totalAcres ?? ''}`);
+  lines.push('');
   lines.push('Configuration');
   lines.push(`Climate,${climateNames[r.state.climate]}`);
   lines.push(`Soil Texture,${textureNames[r.state.texture]}`);
-  lines.push(`Cash Crop,${cropNames[r.state.crop]}`);
-  lines.push(`Cover Crop,${r.spLabel}`);
+  lines.push(`Cash Crop,${csvSafe(cropDisplay)}`);
+  lines.push(`Cover Crop,${csvSafe(r.spLabel)}`);
+  lines.push(`Practice Scale,${formatAcres(r.acres)}`);
   lines.push('');
 
   // Species insights section
@@ -1066,7 +1240,7 @@ document.getElementById('btn-csv').addEventListener('click', () => {
   lines.push('');
   lines.push('"Note: Values are average change percentages from published field studies (Jian et al. 2020 Soil & Tillage Research 199:104575)."');
   lines.push('"Species data: NRCS Cover Crop Chart V4.0 (2023). Management guidance: SARE Managing Cover Crops Profitably 3rd Ed."');
-  lines.push('"Directional guidance only: outputs show likely increase/decrease and relative strength, not field-specific quantitative predictions or measured results. Actual outcomes vary by local conditions. Not a substitute for local soil testing and extension advice."');
+  lines.push('"Directional guidance only: outputs show likely increase/decrease and relative strength, not field-specific quantitative predictions or measured results. Acres are included only as practice-area context and are not used to scale or multiply the average change percentages. Actual outcomes vary by local conditions. Not a substitute for local soil testing and extension advice."');
 
   const csv = lines.join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -1085,7 +1259,8 @@ document.getElementById('btn-pdf').addEventListener('click', () => {
 
   const climateNames = {A:'Tropical (A)',B:'Arid (B)',C:'Temperate (C)',D:'Continental (D)'};
   const textureNames = {coarse:'Coarse',medium:'Medium',fine:'Fine'};
-  const cropNames = {corn:'Corn',soybean:'Soybean',wheat:'Wheat',veg:'Vegetables',cornsoy:'Corn–Soy Rotation',cornsoywheat:'Corn–Soy–Wheat Rotation',other:'Other'};
+  const cropDisplay = escapeHtml(getCropDisplayName(r.state.crop, r.state.cropOther));
+  const farmInfoDisplay = formatFarmInfo(r.farmInfo || {}, true);
 
   const rows = r.params.map(p => {
     const val = r.adjVals[p.id];
@@ -1157,6 +1332,14 @@ document.getElementById('btn-pdf').addEventListener('click', () => {
     <div style="font-size:8.5pt;color:#6B6860;">Generated ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</div>
   </div>
 
+
+  <!-- FARM INFO -->
+  <div style="margin-bottom:1rem;padding:.75rem 1rem;background:#F5ECD9;border-left:3px solid #8C6022;font-size:9pt;color:#111110;line-height:1.6;">
+    <strong style="display:block;margin-bottom:.25rem;text-transform:uppercase;letter-spacing:.06em;font-size:8pt;color:#8C6022;">Farm Info</strong>
+    ${farmInfoDisplay}
+    <div style="font-size:8pt;color:#6B6860;margin-top:.25rem;">For logging only. Farm info does not affect the average directional percentage estimates.</div>
+  </div>
+
   <!-- CONFIG TABLE -->
   <table style="margin-bottom:1.5rem;background:#F5F3EE;border:1px solid #D9D5CC;">
     <thead><tr style="background:#EAE6DC;">
@@ -1164,12 +1347,14 @@ document.getElementById('btn-pdf').addEventListener('click', () => {
       <th style="padding:8px 12px;text-align:left;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B6860;">Soil Texture</th>
       <th style="padding:8px 12px;text-align:left;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B6860;">Cash Crop</th>
       <th style="padding:8px 12px;text-align:left;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B6860;">Cover Crop</th>
+      <th style="padding:8px 12px;text-align:left;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B6860;">Practice Scale</th>
     </tr></thead>
     <tbody><tr>
       <td style="padding:10px 12px;font-size:10pt;font-weight:600;">${climateNames[r.state.climate]}</td>
       <td style="padding:10px 12px;font-size:10pt;font-weight:600;">${textureNames[r.state.texture]}</td>
-      <td style="padding:10px 12px;font-size:10pt;font-weight:600;">${cropNames[r.state.crop]}</td>
+      <td style="padding:10px 12px;font-size:10pt;font-weight:600;">${cropDisplay}</td>
       <td style="padding:10px 12px;font-size:10pt;font-weight:600;">${r.spLabel}</td>
+      <td style="padding:10px 12px;font-size:10pt;font-weight:600;">${formatAcres(r.acres)}</td>
     </tr></tbody>
   </table>
 
@@ -1187,7 +1372,7 @@ document.getElementById('btn-pdf').addEventListener('click', () => {
 
   <!-- FOOTER NOTE -->
   <div style="margin-top:1.5rem;padding:.75rem 1rem;background:#F5F3EE;border-left:3px solid #8C6022;font-size:8pt;color:#6B6860;line-height:1.6;">
-    <strong style="color:#4A3010;">Note:</strong> Estimates are ensemble averages from 269–281 published field studies (Jian et al., 2020, <em>Soil &amp; Tillage Research</em> 199:104575). Species data from NRCS Cover Crop Chart V4.0 (USDA-ARS, 2023). Management guidance from SARE <em>Managing Cover Crops Profitably</em>, 3rd Ed. Values are average change percentages and should be read as directional guidance only — likely increase/decrease and relative strength, not field-specific quantitative predictions or measured results. Actual field outcomes vary by local soil conditions, management history, and years since adoption. Not a substitute for local soil testing and professional extension advice.
+    <strong style="color:#4A3010;">Note:</strong> Estimates are ensemble averages from 269–281 published field studies (Jian et al., 2020, <em>Soil &amp; Tillage Research</em> 199:104575). Species data from NRCS Cover Crop Chart V4.0 (USDA-ARS, 2023). Management guidance from SARE <em>Managing Cover Crops Profitably</em>, 3rd Ed. Values are average change percentages and should be read as directional guidance only — likely increase/decrease and relative strength, not field-specific quantitative predictions or measured results. Farm info is included for logging only. Acres are included only as practice-area context and are not used to scale or multiply the average change percentages. Actual field outcomes vary by local soil conditions, management history, and years since adoption. Not a substitute for local soil testing and professional extension advice.
   </div>
 
   <div style="margin-top:1rem;text-align:center;font-size:7.5pt;color:#aaa;">
