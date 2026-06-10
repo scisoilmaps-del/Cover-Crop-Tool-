@@ -84,6 +84,18 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
 .season-filter-help { font-size:.72rem; color:var(--sci-mid); line-height:1.45; max-width:420px; }
 .season-note { margin-top:.55rem; font-size:.74rem; color:var(--sci-mid); line-height:1.45; }
 .season-note strong { color:var(--sci-leaf); }
+
+.cover-goals-panel { margin:.85rem 0 1rem; padding:.85rem .95rem; background:#fff; border:1px solid var(--sci-border); border-radius:3px; }
+.cover-goals-panel .chip-group { gap:7px; }
+.cover-goals-panel .chip { font-size:.78rem; padding:6px 11px; }
+.reference-guidance-panel { margin:.85rem 0 1rem; padding:.95rem 1rem; background:var(--sci-leaf-bg); border:1px solid var(--sci-leaf-mid); border-left:3px solid var(--sci-leaf); border-radius:0 4px 4px 0; }
+.reference-guidance-kicker { font-size:.68rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:var(--sci-leaf); margin-bottom:.3rem; }
+.reference-guidance-headline { font-size:.82rem; font-weight:650; color:var(--sci-black); line-height:1.45; margin-bottom:.55rem; }
+.reference-guidance-rec { font-size:.95rem; font-weight:800; color:var(--sci-black); margin-bottom:.45rem; }
+.reference-guidance-why { font-size:.78rem; color:var(--sci-mid); line-height:1.5; margin-bottom:.45rem; }
+.reference-guidance-goals { font-size:.74rem; color:var(--sci-mid); line-height:1.45; margin-bottom:.45rem; }
+.reference-guidance-note { font-size:.72rem; color:var(--sci-mid); line-height:1.45; padding-top:.5rem; border-top:1px solid var(--sci-leaf-mid); }
+.reference-guidance-panel.result-version { background:#fff; margin-bottom:1rem; }
 .blend-count { display:flex; align-items:center; gap:8px; margin-top:.75rem; }
 .blend-count label { font-size:.78rem; color:var(--sci-mid); font-weight:500; }
 .blend-btn { width:30px; height:30px; border-radius:50%; border:1.5px solid var(--sci-border); background:#fff; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--sci-mid); transition:all .12s; }
@@ -811,15 +823,33 @@ main { max-width:none; padding:0; }
 <h3>Cover crop type &amp; species</h3>
 <div class="season-filter">
   <div class="season-filter-head">
-    <div class="season-filter-title">Season filter</div>
-    <div class="season-filter-help">Pick the planting window first. The species dropdowns below will only show cover crops that match that season.</div>
+    <div class="season-filter-title">Cover Crop Planting Season</div>
+    <div class="season-filter-help">Warm season — typically planted when soil and air temperatures are warm<br>Cool season — typically planted in fall, winter, or early spring windows</div>
   </div>
   <div class="chip-group" id="cover-season-group">
     <label class="chip active" data-group="coverseason" data-val="cool"><span class="dot"></span>Cool season</label>
     <label class="chip" data-group="coverseason" data-val="warm"><span class="dot"></span>Warm season</label>
   </div>
-  <div class="season-note" id="cover-season-note"><strong>Cool season selected:</strong> showing fall/winter and early spring cover crop options.</div>
+  <div class="season-note" id="cover-season-note"><strong>Cool season selected:</strong> Cool season — typically planted in fall, winter, or early spring windows.</div>
 </div>
+<div class="cover-goals-panel">
+  <div class="season-filter-head">
+    <div class="season-filter-title">Cover Crop Goals</div>
+    <div class="season-filter-help">Select one or more goals for reference guidance. These do not change the calculator math.</div>
+  </div>
+  <div class="chip-group" id="cover-goals-group">
+    <label class="chip" data-group="covergoal" data-val="Erosion control"><span class="dot"></span>Erosion control</label>
+    <label class="chip" data-group="covergoal" data-val="Weed suppression"><span class="dot"></span>Weed suppression</label>
+    <label class="chip" data-group="covergoal" data-val="Nitrogen contribution"><span class="dot"></span>Nitrogen contribution</label>
+    <label class="chip" data-group="covergoal" data-val="Nutrient scavenging"><span class="dot"></span>Nutrient scavenging</label>
+    <label class="chip" data-group="covergoal" data-val="Soil building / organic matter"><span class="dot"></span>Soil building / organic matter</label>
+    <label class="chip" data-group="covergoal" data-val="Compaction / rooting"><span class="dot"></span>Compaction / rooting</label>
+    <label class="chip" data-group="covergoal" data-val="Grazing / forage"><span class="dot"></span>Grazing / forage</label>
+    <label class="chip" data-group="covergoal" data-val="Moisture conservation"><span class="dot"></span>Moisture conservation</label>
+    <label class="chip" data-group="covergoal" data-val="Biodiversity / beneficial insects"><span class="dot"></span>Biodiversity / beneficial insects</label>
+  </div>
+</div>
+<div class="reference-guidance-panel" id="step4-reference-guidance"></div>
 <div class="chip-group" id="cc-group">
 <label class="chip active" data-group="cc" data-val="grass"><span class="dot"></span>Grasses</label>
 <label class="chip" data-group="cc" data-val="legume"><span class="dot"></span>Legumes</label>
@@ -898,6 +928,7 @@ main { max-width:none; padding:0; }
 <span class="scale-summary-value" id="scale-summary-value">Acres not entered</span>
 <span class="scale-summary-note">Acres provide context for the area treated. They are not used to calculate tons, pounds, bushels, ppm, or any other field-level quantity.</span>
 </div>
+<div class="reference-guidance-panel result-version" id="results-reference-guidance"></div>
 <div class="insights-panel" id="insights-panel"></div>
 <!-- print-only config summary -->
 <div class="print-config-block" id="print-config"></div>
@@ -1117,7 +1148,7 @@ function blendMods(speciesIds) {
 }
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
-const state = { climate:'C', texture:'medium', crop:'corn', cropOther:'', cc:'grass', coverSeason:'cool', species:[], blendCount:2 };
+const state = { climate:'C', texture:'medium', crop:'corn', cropOther:'', cc:'grass', coverSeason:'cool', coverGoals:[], species:[], blendCount:2 };
 const STATE_CLIMATE = {
   "Alabama": "C",
   "Alaska": "D",
@@ -1217,12 +1248,18 @@ document.getElementById('select-none').addEventListener('click', () => {
 document.querySelectorAll('.chip').forEach(chip => {
   chip.addEventListener('click', () => {
     const group = chip.dataset.group;
+    if (group === 'covergoal') {
+      chip.classList.toggle('active');
+      state.coverGoals = Array.from(document.querySelectorAll('.chip[data-group="covergoal"].active')).map(c => c.dataset.val);
+      updateReferenceGuidanceBadge();
+      return;
+    }
     document.querySelectorAll(`.chip[data-group="${group}"]`).forEach(c=>c.classList.remove('active'));
     chip.classList.add('active');
     if (group==='climate') { state.climate = chip.dataset.val; const note=document.getElementById('auto-climate-note'); if(note) note.innerHTML = `<strong>Manual climate:</strong> ${STATE_CLIMATE_NAMES[state.climate]} selected. State auto-select can be reapplied by changing the Farm info state.`; }
     else if (group==='texture') state.texture = chip.dataset.val;
-    else if (group==='crop') { state.crop = chip.dataset.val; updateOtherCropField(); }
-    else if (group==='coverseason') { state.coverSeason = chip.dataset.val; renderSpeciesPanel(); }
+    else if (group==='crop') { state.crop = chip.dataset.val; updateOtherCropField(); updateReferenceGuidanceBadge(); }
+    else if (group==='coverseason') { state.coverSeason = chip.dataset.val; renderSpeciesPanel(); updateReferenceGuidanceBadge(); }
     else if (group==='cc') { state.cc = chip.dataset.val; renderSpeciesPanel(); }
   });
 });
@@ -1258,6 +1295,99 @@ if (otherCropInput) {
   otherCropInput.addEventListener('input', () => { state.cropOther = otherCropInput.value.trim(); });
 }
 
+
+// ─── REFERENCE-ONLY COVER CROP GUIDANCE ───────────────────────────────────────
+function getSelectedCoverGoals() {
+  return Array.from(document.querySelectorAll('.chip[data-group="covergoal"].active')).map(c => c.dataset.val);
+}
+function getReferenceCropKey(cropKey, cropOther) {
+  const txt = `${cropKey || ''} ${cropOther || ''}`.toLowerCase();
+  if (txt.includes('rice')) return 'rice';
+  if (txt.includes('cotton')) return 'cotton';
+  if (cropKey === 'soybean') return 'soybean';
+  if (cropKey === 'wheat' || txt.includes('wheat') || txt.includes('small grain') || txt.includes('barley') || txt.includes('oat')) return 'wheat';
+  if (cropKey === 'veg' || txt.includes('vegetable')) return 'veg';
+  if (cropKey === 'corn' || cropKey === 'cornsoy' || cropKey === 'cornsoywheat') return 'corn';
+  return 'other';
+}
+function buildReferenceGuidance(inputState = state) {
+  const goals = (inputState.coverGoals && inputState.coverGoals.length) ? inputState.coverGoals.slice() : getSelectedCoverGoals();
+  const season = inputState.coverSeason || 'cool';
+  const cropKey = getReferenceCropKey(inputState.crop, inputState.cropOther);
+  const has = g => goals.includes(g);
+  let recs = [];
+  let why = goals.length ? 'Selected goals point toward a cover type that supports the main purpose without changing the calculator math.' : 'Select one or more goals to sharpen the reference guidance.';
+  let caution = '';
+
+  if (cropKey === 'corn') {
+    if (has('Nitrogen contribution')) recs.push('Legume cover crop', 'Grass + legume blend');
+    if (has('Erosion control') || has('Weed suppression') || has('Soil building / organic matter')) recs.push('Grass + legume blend');
+    if (season === 'cool') recs.push('Cereal rye / legume blend as a consideration');
+    if (season === 'warm') recs.push('Warm-season grass + legume blend as a consideration');
+    why = 'Corn systems often benefit from erosion protection, residue cover, and legume nitrogen support when the planting window fits.';
+  } else if (cropKey === 'soybean') {
+    if (has('Weed suppression') || has('Erosion control')) recs.push('Grass cover crop', 'High-biomass cover option');
+    if (season === 'cool') recs.push('Cereal rye as a consideration');
+    if (has('Nutrient scavenging')) recs.push('Grass + brassica blend');
+    if (season === 'warm') recs.push('Warm-season grass or diverse blend as a consideration');
+    why = 'Soybean rotations often use grass biomass for cover, weed suppression, and nutrient capture.';
+  } else if (cropKey === 'wheat') {
+    if (season === 'warm') recs.push('Warm-season diverse multi-species blend');
+    if (has('Soil building / organic matter')) recs.push('High-biomass cover option');
+    if (has('Nitrogen contribution')) recs.push('Legume cover crop', 'Grass + legume blend');
+    if (has('Compaction / rooting')) recs.push('Brassica cover crop', 'Grass + brassica blend');
+    why = 'Small grain windows can allow flexible blends that target biomass, nitrogen, rooting, or diversity.';
+  } else if (cropKey === 'rice') {
+    if (season === 'cool') recs.push('Manageable cool-season grass or legume cover option');
+    if (has('Erosion control') || has('Soil building / organic matter')) recs.push('Low-residue/manageable cover option');
+    caution = 'Consider water management, trafficability, and termination before rice planting.';
+    why = 'Rice systems need cover options that fit water timing, field access, and termination risk.';
+  } else if (cropKey === 'cotton') {
+    if (has('Erosion control') || has('Weed suppression') || has('Soil building / organic matter')) recs.push('High-biomass grass cover', 'Grass + legume blend');
+    if (has('Nitrogen contribution')) recs.push('Legume cover crop', 'Grass + legume blend');
+    if (season === 'warm') recs.push('Warm-season diverse blend where planting window allows');
+    why = 'Cotton systems often benefit from biomass cover, erosion protection, and targeted nitrogen contribution where timing allows.';
+  } else if (cropKey === 'veg') {
+    if (has('Weed suppression')) recs.push('Fast-establishing cover option');
+    if (season === 'cool') recs.push('Winter-kill cover option', 'Grass + legume blend');
+    if (season === 'warm') recs.push('Buckwheat-style fast cover or warm-season blend');
+    caution = 'Match cover crop to bed prep, planting date, and termination method.';
+    why = 'Vegetable systems often need fast cover and clean termination that fits bed preparation and planting date.';
+  } else {
+    recs.push('Match cover crop type to planting season and selected goals');
+    if (goals.length > 1) recs.push('Diverse multi-species blend');
+    caution = 'Use local extension guidance for final species and seeding rate.';
+    why = 'For other cash crops, selected goals and local planting timing should drive the cover type.';
+  }
+
+  if (has('Grazing / forage')) recs.push('High-biomass cover option');
+  if (has('Biodiversity / beneficial insects') && goals.length > 1) recs.push('Diverse multi-species blend');
+  if (has('Moisture conservation')) recs.push('High-biomass cover option');
+  if (!recs.length) recs.push(season === 'warm' ? 'Warm-season cover option' : 'Cool-season cover option');
+
+  const seen = new Set();
+  recs = recs.filter(r => { const k = r.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; });
+  return { goals, recommendation: recs.join(' or '), why, caution };
+}
+function referenceGuidanceHtml(guidance) {
+  const goalsText = guidance.goals.length ? guidance.goals.join(', ') : 'No goals selected yet';
+  return `
+    <div class="reference-guidance-kicker">Reference Guidance</div>
+    <div class="reference-guidance-headline">Based on your crop, cover crop goals, and planting season, consider this cover crop (or blend):</div>
+    <div class="reference-guidance-rec">${escapeHtml(guidance.recommendation)}</div>
+    <div class="reference-guidance-why"><strong>Why:</strong> ${escapeHtml(guidance.why)}${guidance.caution ? ` ${escapeHtml(guidance.caution)}` : ''}</div>
+    <div class="reference-guidance-goals"><strong>Selected goals:</strong> ${escapeHtml(goalsText)}</div>
+    <div class="reference-guidance-note">This fit badge uses warm/cool season as a simplified planting-window proxy, so check local planting dates, frost timing, moisture, and termination timing before final species selection; this reference-only guidance does not change the directional results.</div>
+  `;
+}
+function updateReferenceGuidanceBadge() {
+  state.coverGoals = getSelectedCoverGoals();
+  const guidance = buildReferenceGuidance(state);
+  const el = document.getElementById('step4-reference-guidance');
+  if (el) el.innerHTML = referenceGuidanceHtml(guidance);
+  return guidance;
+}
+
 // ─── SPECIES PANEL ────────────────────────────────────────────────────────────
 function getSeasonFilteredSpecies(ccType) {
   const season = state.coverSeason || 'cool';
@@ -1267,8 +1397,8 @@ function getSeasonFilteredSpecies(ccType) {
 function updateCoverSeasonNote() {
   const note = document.getElementById('cover-season-note');
   if (!note) return;
-  if ((state.coverSeason || 'cool') === 'warm') note.innerHTML = '<strong>Warm season selected:</strong> showing summer-planted cover crop options only.';
-  else note.innerHTML = '<strong>Cool season selected:</strong> showing fall/winter and early spring cover crop options.';
+  if ((state.coverSeason || 'cool') === 'warm') note.innerHTML = '<strong>Warm season selected:</strong> Warm season — typically planted when soil and air temperatures are warm.';
+  else note.innerHTML = '<strong>Cool season selected:</strong> Cool season — typically planted in fall, winter, or early spring windows.';
 }
 function speciesSeasonLabel(s) {
   return s.season === 'warm' ? 'Warm' : s.season === 'cool' ? 'Cool' : 'Mixed';
@@ -1379,6 +1509,7 @@ document.getElementById('blend-plus').addEventListener('click', () => {
 });
 
 renderSpeciesPanel(); // initial render
+updateReferenceGuidanceBadge(); // initial reference-only badge
 
 // ─── INSIGHTS GENERATOR ───────────────────────────────────────────────────────
 function formatSeedingRate(speciesList, ccType) {
@@ -1615,6 +1746,12 @@ document.getElementById('calc-btn').addEventListener('click', () => {
     scaleSummaryValue.textContent = formatAcres(acres);
   }
 
+  // Reference-only guidance
+  state.coverGoals = getSelectedCoverGoals();
+  const referenceGuidance = buildReferenceGuidance(state);
+  const resultGuidancePanel = document.getElementById('results-reference-guidance');
+  if (resultGuidancePanel) resultGuidancePanel.innerHTML = referenceGuidanceHtml(referenceGuidance);
+
   // INSIGHTS
   const { bullets, tags, specs } = generateInsights(adjVals, state.cc);
   const insightsPanel = document.getElementById('insights-panel');
@@ -1663,7 +1800,7 @@ document.getElementById('calc-btn').addEventListener('click', () => {
   wrap.scrollIntoView({ behavior:'smooth', block:'nearest' });
 
   // Store results for export
-  window._lastResults = { params, adjVals, spLabel, speciesList, acres, farmInfo, state: {...state} };
+  window._lastResults = { params, adjVals, spLabel, speciesList, acres, farmInfo, referenceGuidance, state: {...state} };
 
   // Update print config block
   const cfgBlock = document.getElementById('print-config');
@@ -1680,7 +1817,9 @@ document.getElementById('calc-btn').addEventListener('click', () => {
       Cash crop: ${cropDisplay} &nbsp;·&nbsp;
       Cover crop: ${spLabel} &nbsp;·&nbsp;
       Season: ${(state.coverSeason || 'cool') === 'warm' ? 'Warm season' : 'Cool season'} &nbsp;·&nbsp;
-      Practice scale: ${formatAcres(acres)}
+      Practice scale: ${formatAcres(acres)}<br>
+      Cover crop goals: ${escapeHtml(referenceGuidance.goals.length ? referenceGuidance.goals.join(', ') : 'No goals selected')}<br>
+      Reference guidance: ${escapeHtml(referenceGuidance.recommendation)}
     </div>`;
 });
 
@@ -1710,6 +1849,10 @@ document.getElementById('btn-csv').addEventListener('click', () => {
   lines.push(`Cover Crop Season,${csvSafe((r.state.coverSeason || 'cool') === 'warm' ? 'Warm season' : 'Cool season')}`);
   lines.push(`Cover Crop,${csvSafe(r.spLabel)}`);
   lines.push(`Practice Scale,${formatAcres(r.acres)}`);
+  lines.push(`Cover Crop Goals,${csvSafe((r.referenceGuidance?.goals || []).join(', ') || 'No goals selected')}`);
+  lines.push(`Reference Guidance,${csvSafe(r.referenceGuidance?.recommendation || '')}`);
+  lines.push(`Reference Guidance Why,${csvSafe(r.referenceGuidance?.why || '')}`);
+  if (r.referenceGuidance?.caution) lines.push(`Reference Guidance Caution,${csvSafe(r.referenceGuidance.caution)}`);
   lines.push('');
 
   // Species insights section
@@ -1830,6 +1973,17 @@ document.getElementById('btn-pdf').addEventListener('click', () => {
       }).join('')}
     </div>` : '';
 
+  const guidance = r.referenceGuidance || buildReferenceGuidance(r.state || {});
+  const guidanceHtml = `
+    <div style="margin-bottom:1.5rem;padding:1rem 1.25rem;border-left:3px solid #3D6B3A;background:#EBF2EA;border:1px solid #C8DEBD;">
+      <div style="font-size:8pt;font-weight:700;color:#3D6B3A;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.25rem;">Reference Guidance</div>
+      <div style="font-size:9pt;font-weight:700;color:#111110;margin-bottom:.4rem;">Based on your crop, cover crop goals, and planting season, consider this cover crop (or blend):</div>
+      <div style="font-size:12pt;font-weight:800;color:#111110;margin-bottom:.35rem;">${escapeHtml(guidance.recommendation || '')}</div>
+      <div style="font-size:9pt;color:#282724;margin-bottom:.35rem;"><strong>Why:</strong> ${escapeHtml(guidance.why || '')}${guidance.caution ? ` ${escapeHtml(guidance.caution)}` : ''}</div>
+      <div style="font-size:8.5pt;color:#6B6860;"><strong>Selected goals:</strong> ${escapeHtml((guidance.goals || []).join(', ') || 'No goals selected')}</div>
+      <div style="font-size:8pt;color:#6B6860;margin-top:.45rem;border-top:1px solid #C8DEBD;padding-top:.45rem;">This fit badge uses warm/cool season as a simplified planting-window proxy. Local planting dates, frost timing, moisture, and termination timing should be checked before final species selection. This is reference-only guidance and does not change the directional results.</div>
+    </div>`;
+
   const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -1879,6 +2033,7 @@ document.getElementById('btn-pdf').addEventListener('click', () => {
     </tr></tbody>
   </table>
 
+  ${guidanceHtml}
   ${specHtml}
   ${bulletHtml}
 
@@ -2040,7 +2195,7 @@ function desiredMultiCropCount(){
   return n;
 }
 function blankCropRun(i){
-  return {label:`Crop ${i+1}`, climate:state.climate||'C', texture:'medium', crop:'corn', cropOther:'', cc:'grass', coverSeason:'cool', species:['cerealrye'], blendCount:2, acres:''};
+  return {label:`Crop ${i+1}`, climate:state.climate||'C', texture:'medium', crop:'corn', cropOther:'', cc:'grass', coverSeason:'cool', coverGoals:[], species:['cerealrye'], blendCount:2, acres:''};
 }
 function ensureCropRuns(){
   const count = desiredMultiCropCount();
@@ -2059,6 +2214,8 @@ function saveCurrentCropRun(){
   run.cropOther = document.getElementById('other-crop-name')?.value.trim() || state.cropOther || '';
   run.cc = state.cc;
   run.coverSeason = state.coverSeason || 'cool';
+  run.coverGoals = getSelectedCoverGoals();
+  state.coverGoals = run.coverGoals.slice();
   run.species = (state.species || []).filter(Boolean).slice();
   run.blendCount = state.blendCount || 2;
   run.acres = document.getElementById('acres-treated')?.value || '';
@@ -2079,6 +2236,7 @@ function loadCropRun(index){
   state.cropOther = run.cropOther || '';
   state.cc = run.cc || 'grass';
   state.coverSeason = run.coverSeason || 'cool';
+  state.coverGoals = (run.coverGoals || []).slice();
   state.blendCount = run.blendCount || 2;
   state.species = (run.species && run.species.length) ? run.species.slice() : [];
   setChipGroup('climate', state.climate);
@@ -2086,6 +2244,8 @@ function loadCropRun(index){
   setChipGroup('crop', state.crop);
   setChipGroup('cc', state.cc);
   setChipGroup('coverseason', state.coverSeason);
+  document.querySelectorAll('.chip[data-group="covergoal"]').forEach(c=>c.classList.toggle('active', state.coverGoals.includes(c.dataset.val)));
+  updateReferenceGuidanceBadge();
   const other = document.getElementById('other-crop-name');
   if(other) other.value = state.cropOther;
   updateOtherCropField();
@@ -2134,6 +2294,7 @@ function calculateSingleCropRun(run, index){
   state.cropOther = run.cropOther || '';
   state.cc = run.cc || 'grass';
   state.coverSeason = run.coverSeason || 'cool';
+  state.coverGoals = (run.coverGoals || []).slice();
   state.blendCount = run.blendCount || 2;
   state.species = (run.species || []).filter(Boolean).slice();
   const other = document.getElementById('other-crop-name'); if(other) other.value = state.cropOther;
@@ -2144,6 +2305,7 @@ function calculateSingleCropRun(run, index){
   const result = window._lastResults ? JSON.parse(JSON.stringify(window._lastResults)) : null;
   if (result) {
     const insightData = generateInsights(result.adjVals, result.state.cc);
+    result.referenceGuidance = buildReferenceGuidance(result.state);
     result.insights = JSON.parse(JSON.stringify(insightData));
   }
   currentCropIndex = priorIndex;
@@ -2227,7 +2389,9 @@ function calculateAllCropRollup(){
     const tagHtml = (insights.tags||[]).map(t=>`<span class="itag itag-${t.cls}">${escapeHtml(t.text)}</span>`).join('');
     const bulletHtml = (insights.bullets||[]).map(b=>`<li>${escapeHtml(b)}</li>`).join('');
     const specHtml = (insights.specs||[]).map(s=>`<div class="rollup-spec-item"><div class="rollup-spec-label">${escapeHtml(s.label)}</div><div class="rollup-spec-val">${escapeHtml(s.val)}</div></div>`).join('');
-    const nrcsSare = `<div class="rollup-source-panel"><div class="rollup-source-title">NRCS + SARE Section</div>${tagHtml ? `<div class="rollup-source-tags">${tagHtml}</div>` : ''}${bulletHtml ? `<ul>${bulletHtml}</ul>` : ''}${specHtml ? `<div class="rollup-spec-grid">${specHtml}</div>` : ''}</div>`;
+    const guidance = result.referenceGuidance || buildReferenceGuidance(result.state);
+    const guidancePanel = `<div class="rollup-source-panel"><div class="rollup-source-title">Reference Guidance</div><p style="font-size:.82rem;line-height:1.45;margin:.25rem 0 .45rem;color:#4A3010;">Based on your crop, cover crop goals, and planting season, consider this cover crop (or blend):</p><strong style="display:block;color:#111110;margin-bottom:.35rem;">${escapeHtml(guidance.recommendation || '')}</strong><p style="font-size:.8rem;line-height:1.45;margin:0;color:#6B6860;"><strong>Why:</strong> ${escapeHtml(guidance.why || '')}${guidance.caution ? ` ${escapeHtml(guidance.caution)}` : ''}<br><strong>Selected goals:</strong> ${escapeHtml((guidance.goals || []).join(', ') || 'No goals selected')}</p></div>`;
+    const nrcsSare = `${guidancePanel}<div class="rollup-source-panel"><div class="rollup-source-title">NRCS + SARE Section</div>${tagHtml ? `<div class="rollup-source-tags">${tagHtml}</div>` : ''}${bulletHtml ? `<ul>${bulletHtml}</ul>` : ''}${specHtml ? `<div class="rollup-spec-grid">${specHtml}</div>` : ''}</div>`;
     const collapsedClass = ' is-collapsed';
     const openText = 'Open';
     const summaryPills = buildCollapsedSummaryPills(result);
@@ -2265,6 +2429,10 @@ function exportAllCropCSV(){
     lines.push(`Cover Crop Season,${csvSafe((result.state.coverSeason || 'cool') === 'warm' ? 'Warm season' : 'Cool season')}`);
     lines.push(`Cover Crop,${csvSafe(result.spLabel)}`);
     lines.push(`Practice Scale,${csvSafe(formatAcres(result.acres))}`);
+    lines.push(`Cover Crop Goals,${csvSafe((result.referenceGuidance?.goals || []).join(', ') || 'No goals selected')}`);
+    lines.push(`Reference Guidance,${csvSafe(result.referenceGuidance?.recommendation || '')}`);
+    lines.push(`Reference Guidance Why,${csvSafe(result.referenceGuidance?.why || '')}`);
+    if (result.referenceGuidance?.caution) lines.push(`Reference Guidance Caution,${csvSafe(result.referenceGuidance.caution)}`);
     lines.push('Parameter,Average Change (%),Beneficial Rank,Beneficial Direction,Scale Position (Worst 0 - Best 100)');
     result.params.forEach(p=>{
       const val = result.adjVals[p.id];
@@ -2312,7 +2480,9 @@ function exportAllCropPDF(){
     const insights = result.insights || {bullets:[],specs:[]};
     const specs = (insights.specs||[]).map(s=>`<div><strong>${escapeHtml(s.label)}:</strong> ${escapeHtml(s.val)}</div>`).join('');
     const bullets = (insights.bullets||[]).map(b=>`<li>${escapeHtml(b)}</li>`).join('');
-    return `<section class="pdf-crop"><h2>Crop ${i+1}: ${escapeHtml(run.label || cropName)}</h2><p>${escapeHtml(climateNames[result.state.climate])} · ${escapeHtml(textureNames[result.state.texture])} · ${escapeHtml(cropName)} · ${escapeHtml((result.state.coverSeason || 'cool') === 'warm' ? 'Warm season' : 'Cool season')} · ${escapeHtml(result.spLabel)} · ${escapeHtml(formatAcres(result.acres))}</p><table><thead><tr><th>Parameter</th><th>Avg Change</th><th>Rank</th><th>Worst → Best</th></tr></thead><tbody>${rows}</tbody></table><div class="pdf-source"><h3>NRCS + SARE Section</h3>${specs}<ul>${bullets}</ul></div></section>`;
+    const guidance = result.referenceGuidance || buildReferenceGuidance(result.state);
+    const guidanceHtml = `<div class="pdf-source"><h3>Reference Guidance</h3><p>Based on your crop, cover crop goals, and planting season, consider this cover crop (or blend):</p><strong>${escapeHtml(guidance.recommendation || '')}</strong><p><strong>Why:</strong> ${escapeHtml(guidance.why || '')}${guidance.caution ? ` ${escapeHtml(guidance.caution)}` : ''}<br><strong>Selected goals:</strong> ${escapeHtml((guidance.goals || []).join(', ') || 'No goals selected')}</p></div>`;
+    return `<section class="pdf-crop"><h2>Crop ${i+1}: ${escapeHtml(run.label || cropName)}</h2><p>${escapeHtml(climateNames[result.state.climate])} · ${escapeHtml(textureNames[result.state.texture])} · ${escapeHtml(cropName)} · ${escapeHtml((result.state.coverSeason || 'cool') === 'warm' ? 'Warm season' : 'Cool season')} · ${escapeHtml(result.spLabel)} · ${escapeHtml(formatAcres(result.acres))}</p>${guidanceHtml}<table><thead><tr><th>Parameter</th><th>Avg Change</th><th>Rank</th><th>Worst → Best</th></tr></thead><tbody>${rows}</tbody></table><div class="pdf-source"><h3>NRCS + SARE Section</h3>${specs}<ul>${bullets}</ul></div></section>`;
   }).join('');
   const w = window.open('', '_blank');
   w.document.write(`<!doctype html><html><head><title>SCI Cover Crop All Crop Roll Up</title><style>body{font-family:Arial,sans-serif;margin:24px;color:#111}h1{font-family:Georgia,serif;margin:0 0 6px}h2{font-family:Georgia,serif;margin:22px 0 4px}.note{background:#F5ECD9;border-left:4px solid #8C6022;padding:10px;margin:12px 0;font-size:12px}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px}th,td{border:1px solid #D9D5CC;padding:7px;text-align:left;vertical-align:middle}th{background:#F5F3EE}.pdf-crop{break-inside:avoid;margin-bottom:20px}.pdf-scale{position:relative;width:150px;height:10px;border-radius:6px;background:linear-gradient(to right,#EF5350,#EF9A9A,#FFCDD2,#ffffff,#C8E6C9,#81C784,#4CAF50);border:1px solid #D9D5CC}.pdf-scale span{position:absolute;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid #111}.pdf-source{margin-top:10px;background:#FBF8EF;border:1px solid #D9D2C3;padding:10px;font-size:12px}.pdf-source h3{margin:0 0 6px;font-size:12px;text-transform:uppercase}.pdf-source ul{margin:6px 0 0 18px;padding:0}@media print{button{display:none}}</style></head><body><h1>SCI Cover Crop Calculator</h1><p>All Crop Roll Up</p><div class="note">Values are average change percentages and directional guidance only. Species data from NRCS Cover Crop Chart V4.0 and SARE Managing Cover Crops Profitably.</div>${farmInfoHtml}${cropSections}<script>window.onload=function(){window.print();}<\/script></body></html>`);
