@@ -486,6 +486,35 @@ main { max-width:none; padding:0; }
   .crop-rollup-head{border-bottom:1px solid #EEE8DA;}
 }
 
+
+/* Start page source dropdown: How this tool works */
+.source-dropdown{margin:0 0 16px;border:1px solid var(--line,#D9D2C3);border-radius:12px;background:#fff;box-shadow:0 8px 18px rgba(74,48,16,.06);overflow:hidden;}
+.source-dropdown summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 14px;background:#FDFBF7;color:var(--soil,#22362C);font-weight:900;}
+.source-dropdown summary::-webkit-details-marker{display:none;}
+.source-dropdown-title{display:flex;flex-direction:column;gap:3px;}
+.source-dropdown-kicker{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--leaf,#315C42);font-weight:900;}
+.source-dropdown-title strong{font-family:'DM Serif Display',Georgia,serif;font-size:1.25rem;font-weight:400;line-height:1.1;}
+.source-dropdown-title span{font-size:.78rem;color:var(--muted,#6F766B);font-weight:600;line-height:1.35;}
+.source-dropdown-chev{width:30px;height:30px;border-radius:999px;background:var(--leaf,#315C42);color:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto;transition:transform .18s ease;}
+.source-dropdown[open] .source-dropdown-chev{transform:rotate(180deg);}
+.source-dropdown-body{padding:14px;border-top:1px solid #EEE8DA;}
+.source-intro{font-size:.86rem;color:#4A3010;line-height:1.6;margin:0 0 12px;}
+.source-blocks{display:grid;gap:12px;}
+.source-block{border:1px solid #E5E0D3;border-radius:12px;background:#FBF8EF;padding:13px;}
+.source-block-head{display:flex;gap:11px;align-items:flex-start;margin-bottom:8px;}
+.source-block-num{font-family:'DM Serif Display',Georgia,serif;font-size:1.55rem;line-height:1;color:var(--leaf,#315C42);min-width:34px;}
+.source-block h3{margin:0 0 3px;font-size:.95rem;color:var(--soil,#22362C);}
+.source-citation{font-size:.76rem;color:var(--muted,#6F766B);font-weight:700;line-height:1.4;}
+.source-block p{font-size:.82rem;color:#4A3010;line-height:1.58;margin:0 0 10px;}
+.source-stats-mini{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;}
+.source-stat-mini{background:#fff;border:1px solid #E5E0D3;border-radius:9px;padding:8px;min-width:0;}
+.source-stat-mini strong{display:block;font-size:.95rem;color:var(--leaf,#315C42);line-height:1.1;}
+.source-stat-mini span{display:block;font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted,#6F766B);font-weight:900;margin-top:3px;}
+.source-accuracy{margin-top:12px;border-left:3px solid var(--clay,#8A4B2A);background:#F8F5EC;border-radius:0 10px 10px 0;padding:12px;font-size:.82rem;color:#4A3010;line-height:1.6;}
+.source-accuracy strong{color:var(--soil,#22362C);}
+@media(max-width:720px){.source-dropdown summary{align-items:flex-start}.source-stats-mini{grid-template-columns:repeat(2,minmax(0,1fr));}.source-block-head{gap:8px}.source-dropdown-title strong{font-size:1.12rem;}}
+@media(max-width:420px){.source-stats-mini{grid-template-columns:1fr;}.source-dropdown-body{padding:12px}.source-block{padding:11px;}}
+
 .setup-warning{margin-top:8px;font-size:.78rem;color:#8A4B2A;font-weight:700;}
 </style>
 </head>
@@ -528,6 +557,76 @@ main { max-width:none; padding:0; }
 <div class="feature-item"><div class="fi-icon">🌾</div><div class="fi-text"><div class="fi-head">Crop-by-Crop Entry</div><div class="fi-sub">Select the cash crop and cover crop species for one crop at a time</div></div></div>
 <div class="feature-item"><div class="fi-icon">📊</div><div class="fi-text"><div class="fi-head">Instant Cover Crop Summary</div><div class="fi-sub">Directional soil health estimates, species insights, seeding rates, CSV, and PDF</div></div></div>
 </div>
+
+<details class="source-dropdown">
+  <summary>
+    <div class="source-dropdown-title">
+      <span class="source-dropdown-kicker">Sources &amp; accuracy</span>
+      <strong>How this tool works</strong>
+      <span>Open to see the science, species data, management guidance, and accuracy notes behind the calculator.</span>
+    </div>
+    <div class="source-dropdown-chev">⌄</div>
+  </summary>
+  <div class="source-dropdown-body">
+    <p class="source-intro">This calculator draws on three independent scientific resources. Each plays a different role — statistical modelling, species-level agronomy, and management guidance.</p>
+
+    <div class="source-blocks">
+      <div class="source-block">
+        <div class="source-block-head">
+          <div class="source-block-num">01</div>
+          <div>
+            <h3>Statistical model &amp; soil health estimates</h3>
+            <div class="source-citation">Jian, Lester, Du, Reiter &amp; Stewart (2020) · Soil &amp; Tillage Research 199, 104575 · Virginia Tech SPES</div>
+          </div>
+        </div>
+        <p>The average percentage change estimates for all 13 soil health and productivity parameters come from this peer-reviewed meta-analysis. The authors compiled paired treatment/control data from 269–281 published field studies across 38+ countries, then used one-sample t-tests and unbalanced analysis of variation (UANOVA) to identify which factors — climate type, soil texture, cover crop category, and cash crop type — most strongly determine how much each indicator responds. Those four factors became the structure of this calculator's five-step inputs. The companion dataset paper (Data in Brief 29, 105376) is fully open-access and includes the R code and raw data at github.com/jinshijian/SoilHealthCalculator. The original web tool was hosted by Virginia Tech's School of Plant and Environmental Sciences at soilhealth.spes.vt.edu.</p>
+        <div class="source-stats-mini">
+          <div class="source-stat-mini"><strong>269–281</strong><span>field studies</span></div>
+          <div class="source-stat-mini"><strong>38+</strong><span>countries</span></div>
+          <div class="source-stat-mini"><strong>13</strong><span>parameters modelled</span></div>
+          <div class="source-stat-mini"><strong>4</strong><span>driving factors</span></div>
+        </div>
+      </div>
+
+      <div class="source-block">
+        <div class="source-block-head">
+          <div class="source-block-num">02</div>
+          <div>
+            <h3>Species-level agronomy data</h3>
+            <div class="source-citation">USDA-ARS Northern Great Plains Research Laboratory · Cover Crop Chart V4.0, April 2023 · Johnson &amp; Liebig</div>
+          </div>
+        </div>
+        <p>Every species dropdown, C:N ratio, crude protein value, salinity tolerance, seeding depth, water use rating, and nitrogen-scavenging tier in Step 4 comes from the NRCS Cover Crop Chart — a compendium assembled by USDA-ARS from the Midwest Cover Crops Council, USDA-SARE, the USDA-NRCS PLANTS database, and peer-reviewed journal articles. The chart covers 50+ species across cool-season grasses, warm-season grasses, cool- and warm-season legumes, and broadleaf/brassica groups. Species modifiers applied to the base model values — for example, radish's strong effect on bulk density and infiltration, or hairy vetch's outsized nitrogen contribution — are derived from the trait ratings and C:N data in this chart. The chart is produced and freely distributed by the NGPRL in Mandan, ND.</p>
+        <div class="source-stats-mini">
+          <div class="source-stat-mini"><strong>50+</strong><span>species profiled</span></div>
+          <div class="source-stat-mini"><strong>V4.0</strong><span>April 2023</span></div>
+          <div class="source-stat-mini"><strong>USDA-ARS</strong><span>source agency</span></div>
+          <div class="source-stat-mini"><strong>NGPRL</strong><span>Mandan ND</span></div>
+        </div>
+      </div>
+
+      <div class="source-block">
+        <div class="source-block-head">
+          <div class="source-block-num">03</div>
+          <div>
+            <h3>Management insights &amp; agronomic guidance</h3>
+            <div class="source-citation">Clark, A. (Ed.) (2007, 3rd printing 2012) · Managing Cover Crops Profitably, 3rd Ed. · SARE Handbook Series Book 9</div>
+          </div>
+        </div>
+        <p>The species insights shown after calculating — termination timing, allelopathy warnings, N credit guidance, cash crop compatibility notes, and C:N interpretation — are drawn from this USDA-SARE handbook. It synthesizes farmer trials, university extension research, and peer-reviewed studies to provide practical management guidance for each species. Key findings used here include: hairy vetch N credit ranges of 90–200 lb N/ac and its documented yield uplift in no-till corn; cereal rye allelopathic effects on soybean germination and appropriate termination windows; brassica bio-fumigant effects on nematodes and soilborne disease; the legume inoculation requirement for effective N fixation; and the 3-week termination buffer before planting for allelopathic species. The book is published by the Sustainable Agriculture Research &amp; Education (SARE) program with funding from USDA-NIFA.</p>
+        <div class="source-stats-mini">
+          <div class="source-stat-mini"><strong>SARE</strong><span>USDA program</span></div>
+          <div class="source-stat-mini"><strong>3rd Ed.</strong><span>2007 / 2012</span></div>
+          <div class="source-stat-mini"><strong>Free PDF</strong><span>sare.org</span></div>
+          <div class="source-stat-mini"><strong>Grower</strong><span>guidance</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="source-accuracy"><strong>On accuracy:</strong> The statistical estimates represent average change percentages across diverse geographies, management systems, and years of cover crop adoption. They should be read as directional guidance — the sign and rough magnitude of change a farmer might expect — not as field-specific quantitative predictions, guarantees, or measured soil test results. Local soil test data, extension advice, and on-farm observation remain essential complements to any modelled estimate. Soil texture groupings follow the Cornell Comprehensive Assessment of Soil Health (CASH) framework. Climate classification follows Köppen-Geiger (Kottek et al., 2006). Soil type lookup: USDA Web Soil Survey.</div>
+  </div>
+</details>
+
 <button class="btn-primary" onclick="goTo('setup')" style="margin-bottom:16px;">Get Started →</button>
 </div>
 </div><div class="screen" id="screen-setup">
