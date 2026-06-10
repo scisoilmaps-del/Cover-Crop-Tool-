@@ -516,6 +516,9 @@ main { max-width:none; padding:0; }
 .source-stat-mini{background:#fff;border:1px solid #E5E0D3;border-radius:9px;padding:8px;min-width:0;}
 .source-stat-mini strong{display:block;font-size:.95rem;color:var(--leaf,#315C42);line-height:1.1;}
 .source-stat-mini span{display:block;font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted,#6F766B);font-weight:900;margin-top:3px;}
+.source-stat-mini a{display:block;color:inherit;text-decoration:none;}
+.source-stat-mini a:hover strong{text-decoration:underline;}
+.source-stat-mini a:hover span{color:var(--leaf,#315C42);}
 .source-accuracy{margin-top:12px;border-left:3px solid var(--clay,#8A4B2A);background:#F8F5EC;border-radius:0 10px 10px 0;padding:12px;font-size:.82rem;color:#4A3010;line-height:1.6;}
 .source-accuracy strong{color:var(--soil,#22362C);}
 @media(max-width:720px){.source-dropdown summary{align-items:flex-start}.source-stats-mini{grid-template-columns:repeat(2,minmax(0,1fr));}.source-block-head{gap:8px}.source-dropdown-title strong{font-size:1.12rem;}}
@@ -623,7 +626,7 @@ main { max-width:none; padding:0; }
         <div class="source-stats-mini">
           <div class="source-stat-mini"><strong>SARE</strong><span>USDA program</span></div>
           <div class="source-stat-mini"><strong>3rd Ed.</strong><span>2007 / 2012</span></div>
-          <div class="source-stat-mini"><strong>Free PDF</strong><span>sare.org</span></div>
+          <div class="source-stat-mini"><a href="https://www.sare.org/wp-content/uploads/Managing-Cover-Crops-Profitably.pdf" target="_blank" rel="noopener"><strong>Free PDF</strong><span>sare.org</span></a></div>
           <div class="source-stat-mini"><strong>Grower</strong><span>guidance</span></div>
         </div>
       </div>
@@ -1967,7 +1970,9 @@ let suppressMultiCalc = false;
 function desiredMultiCropCount(){
   const input = document.getElementById('crop-count');
   if(!input) return 1;
-  let n = parseInt(input.value,10);
+  const raw = String(input.value || '').trim();
+  if(raw === '') return 1; // keep the setup field visually blank on first load, but use one crop internally
+  let n = parseInt(raw,10);
   if(!Number.isFinite(n) || n < 1) n = 1;
   if(n > MULTI_MAX_CROPS) n = MULTI_MAX_CROPS;
   input.value = String(n);
@@ -2259,7 +2264,6 @@ const cropCountInput = document.getElementById('crop-count');
 if(cropCountInput){
   cropCountInput.addEventListener('input', ()=>{ ensureCropRuns(); });
   cropCountInput.addEventListener('change', ()=>{ ensureCropRuns(); });
-  if(!cropCountInput.value) cropCountInput.value = '1';
 }
 ensureCropRuns();
 loadCropRun(0);
