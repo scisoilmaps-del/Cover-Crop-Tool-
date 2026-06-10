@@ -139,6 +139,10 @@ body { font-family:'Inter',sans-serif; background:var(--sci-offwhite); color:var
 .farm-summary-label { font-size:.68rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--sci-amber); }
 .farm-summary-value { font-size:.86rem; font-weight:700; color:var(--sci-black); }
 .farm-summary-note { flex-basis:100%; font-size:.76rem; color:var(--sci-mid); line-height:1.45; }
+.benefit-maturity { display:flex; flex-wrap:wrap; align-items:flex-start; gap:.55rem .85rem; padding:.9rem 1rem; margin-bottom:1rem; background:var(--sci-leaf-bg); border:1px solid var(--sci-border); border-left:3px solid var(--sci-leaf); border-radius:0 4px 4px 0; }
+.benefit-maturity-label { font-size:.68rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--sci-leaf); }
+.benefit-maturity-value { font-size:.86rem; font-weight:800; color:var(--sci-black); }
+.benefit-maturity-note { flex-basis:100%; font-size:.76rem; color:var(--sci-mid); line-height:1.45; }
 .scale-summary { display:flex; flex-wrap:wrap; align-items:center; gap:.7rem; padding:.9rem 1rem; margin-bottom:1rem; background:var(--sci-offwhite); border:1px solid var(--sci-border); border-left:3px solid var(--sci-leaf); border-radius:0 4px 4px 0; }
 .scale-summary-label { font-size:.68rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--sci-mid); }
 .scale-summary-value { font-size:.95rem; font-weight:700; color:var(--sci-black); }
@@ -723,12 +727,16 @@ main { max-width:none; padding:0; }
 <input id="total-acres" inputmode="decimal" min="0" placeholder="Example: 640" step="0.1" type="number"/>
 </div>
 <div class="farm-field">
+<label for="cover-crop-years">Years practicing cover crops</label>
+<input id="cover-crop-years" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Example: 3" aria-label="Years Practicing Cover Crops" autocomplete="off"/>
+</div>
+<div class="farm-field">
 <label for="crop-count">Number of crops</label>
 <input id="crop-count" inputmode="numeric" max="10" min="1" placeholder="Example: 3" step="1" type="number"/>
 <div class="setup-warning" id="crop-count-warning" style="display:none;"></div>
 </div>
 </div>
-<p class="farm-info-note">Farm info is for logging. Number of crops controls the crop-by-crop wizard flow. The State field auto-selects climate type for each crop and does not otherwise change the average directional percentage estimates.</p>
+<p class="farm-info-note">Farm info is for logging. Number of crops controls the crop-by-crop wizard flow. The State field auto-selects climate type for each crop. Years practicing cover crops is entered as a number, then grouped into benefit maturity ranges in results and exports; it does not change the average directional percentage estimates.</p>
 </div></div>
 <div class="wizard-footer"><button class="btn-secondary" onclick="goTo('home')" type="button">← Back</button><button class="btn-calc" onclick="ensureCropRuns(); loadCropRun(0); goTo('step1')" type="button">Continue to Crop 1 →</button></div>
 </div><div class="screen" id="screen-step1"><div class="app-bar"><button class="back-btn" onclick="goTo('setup')" type="button">←</button><span class="app-bar-title">Step 1: Climate Type</span><button class="app-bar-action" onclick="goTo('step2')" type="button">Next →</button></div><div class="step-bar"><div class="step-item active"><div class="step-dot"></div><span>Climate</span></div><div class="step-item"><div class="step-dot"></div><span>Soil</span></div><div class="step-item"><div class="step-dot"></div><span>Cash Crop</span></div><div class="step-item"><div class="step-dot"></div><span>Cover Crop</span></div><div class="step-item"><div class="step-dot"></div><span>Results</span></div></div><div class="wizard-content"><div class="crop-wizard-status" id="crop-status-step1"></div><div class="section-head"><h2>Step 1: Climate Type</h2><div class="sub">Confirm climate for this crop. State selection in setup can auto-select this, but you can override it.</div></div><div class="card">
@@ -879,6 +887,11 @@ main { max-width:none; padding:0; }
 <span class="farm-summary-label">Farm info</span>
 <span class="farm-summary-value" id="farm-summary-value">Farm info not entered</span>
 <span class="farm-summary-note">Farm info is included for recordkeeping and export only. It does not affect the model results.</span>
+</div>
+<div class="benefit-maturity" id="benefit-maturity-summary" style="display:none;">
+<span class="benefit-maturity-label">Benefit maturity</span>
+<span class="benefit-maturity-value" id="benefit-maturity-value">Years practicing cover crops not entered</span>
+<span class="benefit-maturity-note" id="benefit-maturity-note">Enter years practicing cover crops in Farm details to add expected benefit maturity context.</span>
 </div>
 <div class="scale-summary" id="scale-summary" style="display:none;">
 <span class="scale-summary-label">Practice scale</span>
@@ -1474,18 +1487,52 @@ function formatAcres(acres) {
 
 
 // ─── FARM INFO / LOGGING ─────────────────────────────────────────────────────
+const COVER_CROP_YEAR_BENEFITS = {
+  '0': { label: '0 years', detail: 'New / not yet adopted' },
+  '1': { label: '1 year', detail: 'Early adoption; first-year protection and nutrient/weed benefits possible' },
+  '2-3': { label: '2–3 years', detail: 'Building phase; soil-improving effects begin accumulating' },
+  '4-5': { label: '4–5 years', detail: 'Established practice; soil health benefits become more consistent' },
+  '6+': { label: '6+ years', detail: 'Mature practice; accumulated resilience and soil function benefits' }
+};
+function normalizeCoverCropYears(yearValue) {
+  if (yearValue === null || yearValue === undefined || yearValue === '') return null;
+  const n = parseFloat(String(yearValue).replace(/[^0-9.]/g, ''));
+  if (!Number.isFinite(n) || n < 0) return null;
+  return n;
+}
+function getCoverCropBenefit(yearValue) {
+  const years = normalizeCoverCropYears(yearValue);
+  if (years === null) return null;
+  if (years === 0) return COVER_CROP_YEAR_BENEFITS['0'];
+  if (years === 1) return COVER_CROP_YEAR_BENEFITS['1'];
+  if (years >= 2 && years <= 3) return COVER_CROP_YEAR_BENEFITS['2-3'];
+  if (years >= 4 && years <= 5) return COVER_CROP_YEAR_BENEFITS['4-5'];
+  if (years >= 6) return COVER_CROP_YEAR_BENEFITS['6+'];
+  return COVER_CROP_YEAR_BENEFITS['1'];
+}
+function formatCoverCropBenefit(yearValue, html=false) {
+  const years = normalizeCoverCropYears(yearValue);
+  const benefit = getCoverCropBenefit(yearValue);
+  if (!benefit) return html ? 'Years practicing cover crops not entered' : 'Years practicing cover crops not entered';
+  const entered = `${years.toLocaleString(undefined, { maximumFractionDigits: 1 })} ${years === 1 ? 'year entered' : 'years entered'}`;
+  const txt = `${entered} — ${benefit.label} — ${benefit.detail}`;
+  return html ? escapeHtml(txt) : txt;
+}
 function getFarmInfo() {
   const name = document.getElementById('farm-name')?.value.trim() || '';
   const farmState = document.getElementById('farm-state')?.value || '';
   const totalFieldsRaw = document.getElementById('total-fields')?.value || '';
   const totalAcresRaw = document.getElementById('total-acres')?.value || '';
+  const coverCropYears = document.getElementById('cover-crop-years')?.value || '';
   const totalFields = totalFieldsRaw === '' ? null : parseInt(totalFieldsRaw, 10);
   const totalAcres = totalAcresRaw === '' ? null : parseFloat(totalAcresRaw);
   return {
     farmName: name,
     farmState,
     totalFields: Number.isFinite(totalFields) && totalFields >= 0 ? totalFields : null,
-    totalAcres: Number.isFinite(totalAcres) && totalAcres >= 0 ? totalAcres : null
+    totalAcres: Number.isFinite(totalAcres) && totalAcres >= 0 ? totalAcres : null,
+    coverCropYears,
+    coverCropBenefit: getCoverCropBenefit(coverCropYears)
   };
 }
 function formatFarmInfo(info, html=false) {
@@ -1494,6 +1541,7 @@ function formatFarmInfo(info, html=false) {
   if (info?.farmState) parts.push(html ? `State: ${escapeHtml(info.farmState)}` : `State: ${info.farmState}`);
   if (info?.totalFields !== null && info?.totalFields !== undefined) parts.push(`${info.totalFields.toLocaleString()} fields`);
   if (info?.totalAcres !== null && info?.totalAcres !== undefined) parts.push(`${info.totalAcres.toLocaleString(undefined, {maximumFractionDigits:1})} total acres`);
+  if (info?.coverCropYears) parts.push(html ? `Cover crop years: ${formatCoverCropBenefit(info.coverCropYears, true)}` : `Cover crop years: ${formatCoverCropBenefit(info.coverCropYears)}`);
   return parts.length ? parts.join(' · ') : 'Farm info not entered';
 }
 
@@ -1549,6 +1597,16 @@ document.getElementById('calc-btn').addEventListener('click', () => {
   if (farmSummary && farmSummaryValue) {
     farmSummary.style.display = 'flex';
     farmSummaryValue.textContent = formatFarmInfo(farmInfo);
+  }
+  const benefitSummary = document.getElementById('benefit-maturity-summary');
+  const benefitValue = document.getElementById('benefit-maturity-value');
+  const benefitNote = document.getElementById('benefit-maturity-note');
+  if (benefitSummary && benefitValue && benefitNote) {
+    benefitSummary.style.display = 'flex';
+    const years = normalizeCoverCropYears(farmInfo.coverCropYears);
+    const benefit = getCoverCropBenefit(farmInfo.coverCropYears);
+    benefitValue.textContent = benefit ? `${years.toLocaleString(undefined, { maximumFractionDigits: 1 })} ${years === 1 ? 'year entered' : 'years entered'} → ${benefit.label}` : 'Years practicing cover crops not entered';
+    benefitNote.textContent = benefit ? benefit.detail : 'Enter years practicing cover crops in Farm details to add expected benefit maturity context.';
   }
   const scaleSummary = document.getElementById('scale-summary');
   const scaleSummaryValue = document.getElementById('scale-summary-value');
@@ -1616,6 +1674,7 @@ document.getElementById('calc-btn').addEventListener('click', () => {
     <div style="margin-bottom:1rem;padding:.75rem 1rem;background:#F5F3EE;border:1px solid #D9D5CC;border-radius:4px;font-size:.8rem;line-height:1.7;">
       <strong style="display:block;margin-bottom:.25rem;">Configuration</strong>
       Farm info: ${formatFarmInfo(farmInfo, true)}<br>
+      Benefit maturity: ${formatCoverCropBenefit(farmInfo.coverCropYears, true)}<br>
       Climate: ${climateNames[state.climate]} &nbsp;·&nbsp;
       Soil texture: ${textureNames[state.texture]} &nbsp;·&nbsp;
       Cash crop: ${cropDisplay} &nbsp;·&nbsp;
@@ -1642,6 +1701,7 @@ document.getElementById('btn-csv').addEventListener('click', () => {
   lines.push(`State,${csvSafe(r.farmInfo?.farmState || '')}`);
   lines.push(`Total Fields,${r.farmInfo?.totalFields ?? ''}`);
   lines.push(`Total Acres,${r.farmInfo?.totalAcres ?? ''}`);
+  lines.push(`Years Practicing Cover Crops,${csvSafe(formatCoverCropBenefit(r.farmInfo?.coverCropYears || ''))}`);
   lines.push('');
   lines.push('Configuration');
   lines.push(`Climate,${climateNames[r.state.climate]}`);
@@ -1797,7 +1857,8 @@ document.getElementById('btn-pdf').addEventListener('click', () => {
   <div style="margin-bottom:1rem;padding:.75rem 1rem;background:#F5ECD9;border-left:3px solid #8C6022;font-size:9pt;color:#111110;line-height:1.6;">
     <strong style="display:block;margin-bottom:.25rem;text-transform:uppercase;letter-spacing:.06em;font-size:8pt;color:#8C6022;">Farm Info</strong>
     ${farmInfoDisplay}
-    <div style="font-size:8pt;color:#6B6860;margin-top:.25rem;">For logging only. Farm info does not affect the average directional percentage estimates.</div>
+    <div style="font-size:8pt;color:#3D6B3A;margin-top:.35rem;"><strong>Benefit maturity:</strong> ${formatCoverCropBenefit(r.farmInfo?.coverCropYears || '', true)}</div>
+    <div style="font-size:8pt;color:#6B6860;margin-top:.25rem;">For logging only. Farm info and benefit maturity context do not affect the average directional percentage estimates.</div>
   </div>
 
   <!-- CONFIG TABLE -->
@@ -2142,7 +2203,12 @@ function calculateAllCropRollup(){
   const roll = document.getElementById('all-crop-rollup');
   if(!roll) return;
   const results = buildAllCropResults();
-  const toolbar = `<div class="crop-rollup-toolbar"><div><h2>All Crop Roll Up</h2><div class="sub">Each crop is ranked from worst to best using the same red → white → green scale as the original result cards. Cards are sorted best to worst within each crop.</div><div class="rollup-legend"><span>Worst</span><span class="rollup-legend-bar"></span><span>Best</span></div></div><div class="export-btns"><button class="btn-export" type="button" onclick="exportAllCropCSV()"><svg viewBox="0 0 16 16"><path d="M3 2h7l3 3v9H3V2z"></path><path d="M10 2v3h3"></path><path d="M5 9h6M5 11.5h4"></path></svg>CSV</button><button class="btn-export" type="button" onclick="exportAllCropPDF()"><svg viewBox="0 0 16 16"><path d="M3 2h7l3 3v9H3V2z"></path><path d="M10 2v3h3"></path><path d="M5 7.5h2.5a1 1 0 010 2H5v-2zM5 9.5v2"></path></svg>PDF</button></div></div>`;
+  const farmInfo = getFarmInfo();
+  const benefit = getCoverCropBenefit(farmInfo.coverCropYears);
+  const years = normalizeCoverCropYears(farmInfo.coverCropYears);
+  const maturityValue = benefit ? `${years.toLocaleString(undefined, { maximumFractionDigits: 1 })} ${years === 1 ? 'year entered' : 'years entered'} → ${benefit.label}` : 'Years practicing cover crops not entered';
+  const maturityHtml = `<div class="benefit-maturity" style="display:flex;"><span class="benefit-maturity-label">Benefit maturity</span><span class="benefit-maturity-value">${escapeHtml(maturityValue)}</span><span class="benefit-maturity-note">${escapeHtml(benefit ? benefit.detail : 'Enter years practicing cover crops in Farm details to add expected benefit maturity context.')}</span></div>`;
+  const toolbar = `<div class="crop-rollup-toolbar"><div><h2>All Crop Roll Up</h2><div class="sub">Each crop is ranked from worst to best using the same red → white → green scale as the original result cards. Cards are sorted best to worst within each crop.</div><div class="rollup-legend"><span>Worst</span><span class="rollup-legend-bar"></span><span>Best</span></div></div><div class="export-btns"><button class="btn-export" type="button" onclick="exportAllCropCSV()"><svg viewBox="0 0 16 16"><path d="M3 2h7l3 3v9H3V2z"></path><path d="M10 2v3h3"></path><path d="M5 9h6M5 11.5h4"></path></svg>CSV</button><button class="btn-export" type="button" onclick="exportAllCropPDF()"><svg viewBox="0 0 16 16"><path d="M3 2h7l3 3v9H3V2z"></path><path d="M10 2v3h3"></path><path d="M5 7.5h2.5a1 1 0 010 2H5v-2zM5 9.5v2"></path></svg>PDF</button></div></div>${maturityHtml}`;
   roll.innerHTML = toolbar + results.map(({run,result},i)=>{
     if(!result) return '';
     const climateNames = {A:'Tropical (A)',B:'Arid (B)',C:'Temperate (C)',D:'Continental (D)'};
@@ -2179,6 +2245,14 @@ function exportAllCropCSV(){
   const lines = [];
   lines.push('SCI Cover Crop Calculator - All Crop Roll Up');
   lines.push(`Export Date,${new Date().toISOString().slice(0,10)}`);
+  const farmInfo = getFarmInfo();
+  lines.push('');
+  lines.push('Farm Info');
+  lines.push(`Farm Name,${csvSafe(farmInfo.farmName || '')}`);
+  lines.push(`State,${csvSafe(farmInfo.farmState || '')}`);
+  lines.push(`Total Fields,${farmInfo.totalFields ?? ''}`);
+  lines.push(`Total Acres,${farmInfo.totalAcres ?? ''}`);
+  lines.push(`Years Practicing Cover Crops,${csvSafe(formatCoverCropBenefit(farmInfo.coverCropYears || ''))}`);
   lines.push('');
   results.forEach(({run,result},i)=>{
     const climateNames = {A:'Tropical (A)',B:'Arid (B)',C:'Temperate (C)',D:'Continental (D)'};
@@ -2225,6 +2299,8 @@ function exportAllCropPDF(){
   if(!results.length) return;
   const climateNames = {A:'Tropical (A)',B:'Arid (B)',C:'Temperate (C)',D:'Continental (D)'};
   const textureNames = {coarse:'Coarse',medium:'Medium',fine:'Fine'};
+  const farmInfo = getFarmInfo();
+  const farmInfoHtml = `<div class="note"><strong>Farm Info:</strong> ${formatFarmInfo(farmInfo, true)}<br><strong>Benefit maturity:</strong> ${formatCoverCropBenefit(farmInfo.coverCropYears || '', true)}</div>`;
   const cropSections = results.map(({run,result},i)=>{
     const cropName = getCropDisplayName(result.state.crop, result.state.cropOther);
     const rows = result.params.map(p=>{
@@ -2239,7 +2315,7 @@ function exportAllCropPDF(){
     return `<section class="pdf-crop"><h2>Crop ${i+1}: ${escapeHtml(run.label || cropName)}</h2><p>${escapeHtml(climateNames[result.state.climate])} · ${escapeHtml(textureNames[result.state.texture])} · ${escapeHtml(cropName)} · ${escapeHtml((result.state.coverSeason || 'cool') === 'warm' ? 'Warm season' : 'Cool season')} · ${escapeHtml(result.spLabel)} · ${escapeHtml(formatAcres(result.acres))}</p><table><thead><tr><th>Parameter</th><th>Avg Change</th><th>Rank</th><th>Worst → Best</th></tr></thead><tbody>${rows}</tbody></table><div class="pdf-source"><h3>NRCS + SARE Section</h3>${specs}<ul>${bullets}</ul></div></section>`;
   }).join('');
   const w = window.open('', '_blank');
-  w.document.write(`<!doctype html><html><head><title>SCI Cover Crop All Crop Roll Up</title><style>body{font-family:Arial,sans-serif;margin:24px;color:#111}h1{font-family:Georgia,serif;margin:0 0 6px}h2{font-family:Georgia,serif;margin:22px 0 4px}.note{background:#F5ECD9;border-left:4px solid #8C6022;padding:10px;margin:12px 0;font-size:12px}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px}th,td{border:1px solid #D9D5CC;padding:7px;text-align:left;vertical-align:middle}th{background:#F5F3EE}.pdf-crop{break-inside:avoid;margin-bottom:20px}.pdf-scale{position:relative;width:150px;height:10px;border-radius:6px;background:linear-gradient(to right,#EF5350,#EF9A9A,#FFCDD2,#ffffff,#C8E6C9,#81C784,#4CAF50);border:1px solid #D9D5CC}.pdf-scale span{position:absolute;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid #111}.pdf-source{margin-top:10px;background:#FBF8EF;border:1px solid #D9D2C3;padding:10px;font-size:12px}.pdf-source h3{margin:0 0 6px;font-size:12px;text-transform:uppercase}.pdf-source ul{margin:6px 0 0 18px;padding:0}@media print{button{display:none}}</style></head><body><h1>SCI Cover Crop Calculator</h1><p>All Crop Roll Up</p><div class="note">Values are average change percentages and directional guidance only. Species data from NRCS Cover Crop Chart V4.0 and SARE Managing Cover Crops Profitably.</div>${cropSections}<script>window.onload=function(){window.print();}<\/script></body></html>`);
+  w.document.write(`<!doctype html><html><head><title>SCI Cover Crop All Crop Roll Up</title><style>body{font-family:Arial,sans-serif;margin:24px;color:#111}h1{font-family:Georgia,serif;margin:0 0 6px}h2{font-family:Georgia,serif;margin:22px 0 4px}.note{background:#F5ECD9;border-left:4px solid #8C6022;padding:10px;margin:12px 0;font-size:12px}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px}th,td{border:1px solid #D9D5CC;padding:7px;text-align:left;vertical-align:middle}th{background:#F5F3EE}.pdf-crop{break-inside:avoid;margin-bottom:20px}.pdf-scale{position:relative;width:150px;height:10px;border-radius:6px;background:linear-gradient(to right,#EF5350,#EF9A9A,#FFCDD2,#ffffff,#C8E6C9,#81C784,#4CAF50);border:1px solid #D9D5CC}.pdf-scale span{position:absolute;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid #111}.pdf-source{margin-top:10px;background:#FBF8EF;border:1px solid #D9D2C3;padding:10px;font-size:12px}.pdf-source h3{margin:0 0 6px;font-size:12px;text-transform:uppercase}.pdf-source ul{margin:6px 0 0 18px;padding:0}@media print{button{display:none}}</style></head><body><h1>SCI Cover Crop Calculator</h1><p>All Crop Roll Up</p><div class="note">Values are average change percentages and directional guidance only. Species data from NRCS Cover Crop Chart V4.0 and SARE Managing Cover Crops Profitably.</div>${farmInfoHtml}${cropSections}<script>window.onload=function(){window.print();}<\/script></body></html>`);
   w.document.close();
 }
 window.__multiCropCalcClick = function(ev){
@@ -2267,6 +2343,34 @@ if(cropCountInput){
 }
 ensureCropRuns();
 loadCropRun(0);
+
+
+// Hard guard: keep Years Practicing Cover Crops as a typed text box, never a dropdown.
+function enforceCoverCropYearsTextBox(){
+  const el = document.getElementById('cover-crop-years');
+  if(!el) return;
+  if(el.tagName && el.tagName.toLowerCase() === 'select'){
+    const input = document.createElement('input');
+    input.id = 'cover-crop-years';
+    input.type = 'text';
+    input.inputMode = 'numeric';
+    input.pattern = '[0-9]*';
+    input.placeholder = 'Example: 3';
+    input.setAttribute('aria-label', 'Years Practicing Cover Crops');
+    input.autocomplete = 'off';
+    input.className = el.className || '';
+    input.value = el.value || '';
+    el.replaceWith(input);
+  } else {
+    el.setAttribute('type','text');
+    el.setAttribute('inputmode','numeric');
+    el.setAttribute('pattern','[0-9]*');
+    el.setAttribute('placeholder','Example: 3');
+    el.setAttribute('autocomplete','off');
+  }
+}
+enforceCoverCropYearsTextBox();
+document.addEventListener('DOMContentLoaded', enforceCoverCropYearsTextBox);
 
 </script>
 <footer class="sci-footer">
